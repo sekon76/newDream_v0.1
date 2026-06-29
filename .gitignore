@@ -1,0 +1,23 @@
+# Gradle
+.gradle/
+build/
+bin/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Redis dump
+dump.rdb
+
+# Env files
+.env
+*.env.local

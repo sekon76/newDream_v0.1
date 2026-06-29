@@ -1,14 +1,14 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/fishingapp
-    username: fishinguser
-    password: fishing1234
+    url: jdbc:postgresql://localhost:5432/${DB_NAME:fishingapp}
+    username: ${DB_USERNAME:fishinguser}
+    password: ${DB_PASSWORD:fishing1234}
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: ${JPA_DDL_AUTO:update}   # 운영: validate
+    show-sql: ${JPA_SHOW_SQL:true}        # 운영: false
     properties:
       hibernate:
         format_sql: true
@@ -16,12 +16,13 @@ spring:
 
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}        # 운영: 반드시 설정
 
 server:
   port: 8080
 
 jwt:
-  secret: fishing-app-secret-key-must-be-at-least-256-bits-long-for-hs256
+  secret: ${JWT_SECRET:please-change-this-secret-before-deploy-at-least-256bits}
   expiration: 86400000  # 24시간 (ms)

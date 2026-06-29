@@ -62,7 +62,7 @@ expiration: 86400000  # 24시간(ms)
 
 ---
 
-## 현재 프로젝트 상태 (2026-06-16 기준)
+## 현재 프로젝트 상태 (2026-06-29 기준)
 
 - [x] 프로젝트 구조 생성 (Gradle, Spring Boot)
 - [x] PostgreSQL 설치 및 DB/유저 생성
@@ -70,7 +70,14 @@ expiration: 86400000  # 24시간(ms)
 - [x] GitHub 연동 완료 (SSH 인증)
 - [x] 첫 번째 push 완료
 - [x] VS Code 연동
-- [ ] 도메인 개발 시작 (아직 비어있음)
+- [x] **global/config** — JWT, Security, Redis 설정 완료 (보안 강화 적용)
+- [x] **global/exception** — 공통 예외 처리 (JSON 에러 응답)
+- [x] **domain/user** — 회원가입/로그인/로그아웃 API 완료 (실행 테스트 통과)
+- [x] **domain/point** — 낚시 포인트 CRUD + 방문기록(채비/미끼/날씨/조석) 완료
+- [x] **global/external** — 날씨·조석 클라이언트 인터페이스 (Stub 구현)
+- [ ] domain/diary — 낚시 일지 CRUD
+- [ ] domain/prediction — 날씨·조석 API 연동 (Stub → 실제 API 교체)
+- [ ] domain/community — 커뮤니티 게시판
 
 ---
 
@@ -78,7 +85,7 @@ expiration: 86400000  # 24시간(ms)
 
 - 해양수산부 조석 예보 API
 - 기상청 단기예보 API (OpenAPI)
-- 카카오맵 API
+- 네이버맵 API
 - Firebase Cloud Messaging (푸시 알림)
 
 ---
@@ -92,29 +99,66 @@ expiration: 86400000  # 24시간(ms)
 
 ## 다음 개발 단계 (MVP)
 
-1. **회원 도메인** - 회원가입/로그인, JWT 인증
-2. **포인트 도메인** - 낚시 장소 CRUD
+1. ~~**회원 도메인** - 회원가입/로그인, JWT 인증~~ ✅ 완료
+2. ~~**포인트 도메인** - 낚시 장소 CRUD + 방문기록(채비/미끼/날씨/조석)~~ ✅ 완료
 3. **일지 도메인** - 조황 기록 CRUD
 4. **예측 도메인** - 날씨·조석 API 연동
 5. **공유 도메인** - 커뮤니티 게시판
 
 ---
 
-## 패키지 구조 (예정)
+## 패키지 구조
 
 ```
 com.fishingapp
 ├── domain
-│   ├── user        # 회원
-│   ├── point       # 낚시 포인트
-│   ├── diary       # 낚시 일지
-│   ├── prediction  # 조과 예측
-│   └── community   # 공유/커뮤니티
+│   ├── user              # 회원 ✅
+│   │   ├── controller    # AuthController (signup/login/logout)
+│   │   ├── dto           # SignUpRequest, LoginRequest, AuthResponse
+│   │   ├── entity        # User (UserDetails 구현), UserRole
+│   │   ├── repository    # UserRepository
+│   │   └── service       # UserService (UserDetailsService 구현)
+│   ├── point             # 낚시 포인트 ✅
+│   │   ├── controller    # FishingPointController, PointVisitController
+│   │   ├── dto           # PointCreate/Update/Response, PointVisitCreate/Update/Response, TackleEntryRequest/Response
+│   │   ├── entity        # FishingPoint, PointVisit, TackleEntry, WeatherInfo(@Embeddable), TideInfo(@Embeddable)
+│   │   ├── repository    # FishingPointRepository, PointVisitRepository
+│   │   └── service       # FishingPointService, PointVisitService
+│   ├── diary             # 낚시 일지 (예정)
+│   ├── prediction        # 조과 예측 (예정)
+│   └── community         # 공유/커뮤니티 (예정)
 ├── global
-│   ├── config      # Security, JWT, Redis 설정
-│   ├── exception   # 공통 예외 처리
-│   └── util        # 공통 유틸
+│   ├── config            # SecurityConfig, JwtAuthenticationFilter, RedisConfig, JwtProperties ✅
+│   ├── exception         # GlobalExceptionHandler, ErrorResponse ✅
+│   ├── external          # WeatherClient, TideClient 인터페이스 + Stub 구현 ✅
+│   └── util              # JwtTokenProvider ✅
 ```
+
+## 구현된 API 엔드포인트
+
+| Method | URL | 인증 | 설명 |
+|--------|-----|------|------|
+| POST | /api/auth/signup | 불필요 | 회원가입 (mapProvider 선택: NAVER/KAKAO) |
+| POST | /api/auth/login | 불필요 | 로그인 |
+| POST | /api/auth/logout | Bearer 토큰 | 로그아웃 (Redis 블랙리스트) |
+| POST | /api/points | Bearer 토큰 | 낚시 포인트 등록 |
+| GET | /api/points | Bearer 토큰 | 내 포인트 목록 |
+| GET | /api/points/{id} | Bearer 토큰 | 포인트 상세 |
+| PUT | /api/points/{id} | Bearer 토큰 | 포인트 수정 |
+| DELETE | /api/points/{id} | Bearer 토큰 | 포인트 삭제 |
+| POST | /api/points/{id}/visits | Bearer 토큰 | 방문기록 등록 (채비/미끼 + 날씨/조석 자동) |
+| GET | /api/points/{id}/visits | Bearer 토큰 | 방문기록 목록 |
+| GET | /api/points/{id}/visits/{visitId} | Bearer 토큰 | 방문기록 상세 |
+| PUT | /api/points/{id}/visits/{visitId} | Bearer 토큰 | 방문기록 수정 |
+| DELETE | /api/points/{id}/visits/{visitId} | Bearer 토큰 | 방문기록 삭제 |
+
+## 보안 적용 내역
+
+- JWT secret / DB password / Redis password 환경변수 분리 (`${VAR:default}` 형식)
+- 운영 환경변수: `JWT_SECRET`, `DB_PASSWORD`, `REDIS_PASSWORD`, `JPA_DDL_AUTO=validate`, `JPA_SHOW_SQL=false`
+- 로그아웃 시 Redis 블랙리스트로 즉시 토큰 무효화
+- 인증/인가 실패 → JSON 에러 응답 (AuthenticationEntryPoint/AccessDeniedHandler)
+- 위조 토큰 시도 warn 로그 기록
 
 ---
 
@@ -126,11 +170,15 @@ PostgreSQL 및 Redis가 실행 중이어야 합니다.
 # PATH 설정 (VS Code 터미널에서 새 세션일 때)
 $env:PATH = "$env:USERPROFILE\scoop\shims;$env:USERPROFILE\scoop\apps\git\current\cmd;$env:PATH"
 
-# PostgreSQL 시작 (필요시)
-pg_ctl start -D "$env:USERPROFILE\scoop\apps\postgresql\current\data"
+# PostgreSQL 시작 (실제 데이터 경로: scoop\persist)
+pg_ctl start -D "$env:USERPROFILE\scoop\persist\postgresql\data" -l "$env:USERPROFILE\scoop\persist\postgresql\data\postgresql.log"
 
-# Redis 시작 (필요시)
-redis-server --daemonize no
+# PostgreSQL 상태 확인
+pg_ctl status -D "$env:USERPROFILE\scoop\persist\postgresql\data"
+
+# Redis 시작
+Start-Process -FilePath "redis-server" -WindowStyle Hidden
+redis-cli ping  # PONG 확인
 
 # 빌드 및 실행
 .\gradlew.bat bootRun
