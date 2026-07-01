@@ -35,6 +35,15 @@ public class PointVisit {
     @Column(length = 500)
     private String memo;
 
+    @Column(length = 200)
+    private String title;
+
+    @Column(length = 5000)
+    private String content;
+
+    @Column(nullable = false)
+    private boolean isPublic = false;
+
     @Embedded
     private WeatherInfo weather;
 
@@ -43,6 +52,9 @@ public class PointVisit {
 
     @OneToMany(mappedBy = "pointVisit", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TackleEntry> tackles = new ArrayList<>();
+
+    @OneToMany(mappedBy = "pointVisit", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CatchRecord> catches = new ArrayList<>();
 
     @CreatedDate
     @Column(updatable = false)
@@ -53,10 +65,14 @@ public class PointVisit {
 
     @Builder
     public PointVisit(FishingPoint fishingPoint, LocalDate visitDate, String memo,
+                      String title, String content, boolean isPublic,
                       WeatherInfo weather, TideInfo tide) {
         this.fishingPoint = fishingPoint;
         this.visitDate = visitDate;
         this.memo = memo;
+        this.title = title;
+        this.content = content;
+        this.isPublic = isPublic;
         this.weather = weather;
         this.tide = tide;
     }
@@ -71,8 +87,21 @@ public class PointVisit {
         newTackles.forEach(this::addTackle);
     }
 
-    public void update(LocalDate visitDate, String memo) {
+    public void addCatch(CatchRecord catchRecord) {
+        catchRecord.assignTo(this);
+        this.catches.add(catchRecord);
+    }
+
+    public void replaceCatches(List<CatchRecord> newCatches) {
+        this.catches.clear();
+        newCatches.forEach(this::addCatch);
+    }
+
+    public void update(LocalDate visitDate, String memo, String title, String content, boolean isPublic) {
         this.visitDate = visitDate;
         this.memo = memo;
+        this.title = title;
+        this.content = content;
+        this.isPublic = isPublic;
     }
 }

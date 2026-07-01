@@ -1,0 +1,14 @@
+{
+  "properties": [
+    {
+      "name": "external.kma.api-key",
+      "type": "java.lang.String",
+      "description": "기상청 단기예보 API 인증키 (data.go.kr — 일반 인증키 Decoding 값)"
+    },
+    {
+      "name": "external.khoa.api-key",
+      "type": "java.lang.String",
+      "description": "해양수산부 조석 예보 API 인증키 (data.go.kr — 일반 인증키 Decoding 값)"
+    }
+  ]
+}

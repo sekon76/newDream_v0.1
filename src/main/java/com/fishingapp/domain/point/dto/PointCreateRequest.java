@@ -1,5 +1,6 @@
 package com.fishingapp.domain.point.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 
@@ -25,5 +26,6 @@ public class PointCreateRequest {
 
     private String fishType;
 
+    @JsonProperty("isPublic")
     private boolean isPublic = false;
 }

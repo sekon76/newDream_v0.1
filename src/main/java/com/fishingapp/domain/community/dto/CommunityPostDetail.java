@@ -1,5 +1,7 @@
-package com.fishingapp.domain.point.dto;
+package com.fishingapp.domain.community.dto;
 
+import com.fishingapp.domain.point.dto.CatchRecordResponse;
+import com.fishingapp.domain.point.dto.TackleEntryResponse;
 import com.fishingapp.domain.point.entity.PointVisit;
 import com.fishingapp.domain.point.entity.TideInfo;
 import com.fishingapp.domain.point.entity.WeatherInfo;
@@ -10,27 +12,30 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
-public class PointVisitResponse {
-    private final Long id;
+public class CommunityPostDetail {
+    private final Long visitId;
+    private final String authorNickname;
+    private final String pointName;
+    private final String pointAddress;
     private final LocalDate visitDate;
-    private final String memo;
     private final String title;
     private final String content;
-    private final Boolean isPublic;
+    private final String memo;
     private final WeatherInfo weather;
     private final TideInfo tide;
     private final List<TackleEntryResponse> tackles;
     private final List<CatchRecordResponse> catches;
     private final LocalDateTime createdAt;
-    private final LocalDateTime updatedAt;
 
-    public PointVisitResponse(PointVisit visit) {
-        this.id = visit.getId();
+    public CommunityPostDetail(PointVisit visit) {
+        this.visitId = visit.getId();
+        this.authorNickname = visit.getFishingPoint().getUser().getNickname();
+        this.pointName = visit.getFishingPoint().getName();
+        this.pointAddress = visit.getFishingPoint().getAddress();
         this.visitDate = visit.getVisitDate();
-        this.memo = visit.getMemo();
         this.title = visit.getTitle();
         this.content = visit.getContent();
-        this.isPublic = visit.isPublic();
+        this.memo = visit.getMemo();
         this.weather = visit.getWeather();
         this.tide = visit.getTide();
         this.tackles = visit.getTackles().stream()
@@ -40,6 +45,5 @@ public class PointVisitResponse {
                 .map(CatchRecordResponse::new)
                 .toList();
         this.createdAt = visit.getCreatedAt();
-        this.updatedAt = visit.getUpdatedAt();
     }
 }

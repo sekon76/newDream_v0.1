@@ -1,6 +1,7 @@
 package com.fishingapp.domain.point.service;
 
 import com.fishingapp.domain.point.dto.*;
+import com.fishingapp.domain.point.entity.CatchRecord;
 import com.fishingapp.domain.point.entity.FishingPoint;
 import com.fishingapp.domain.point.entity.PointVisit;
 import com.fishingapp.domain.point.entity.TackleEntry;
@@ -33,6 +34,9 @@ public class PointVisitService {
                 .fishingPoint(point)
                 .visitDate(request.getVisitDate())
                 .memo(request.getMemo())
+                .title(request.getTitle())
+                .content(request.getContent())
+                .isPublic(request.isPublic())
                 .weather(weatherClient.fetch(point.getLatitude(), point.getLongitude(), request.getVisitDate()))
                 .tide(tideClient.fetch(point.getLatitude(), point.getLongitude(), request.getVisitDate()))
                 .build();
@@ -41,6 +45,12 @@ public class PointVisitService {
             request.getTackles().stream()
                     .map(TackleEntryRequest::toEntity)
                     .forEach(visit::addTackle);
+        }
+
+        if (request.getCatches() != null) {
+            request.getCatches().stream()
+                    .map(CatchRecordRequest::toEntity)
+                    .forEach(visit::addCatch);
         }
 
         return new PointVisitResponse(pointVisitRepository.save(visit));
@@ -64,13 +74,21 @@ public class PointVisitService {
         FishingPoint point = getOwnedPoint(user, pointId);
         PointVisit visit = getOwnedVisit(point, visitId);
 
-        visit.update(request.getVisitDate(), request.getMemo());
+        visit.update(request.getVisitDate(), request.getMemo(),
+                request.getTitle(), request.getContent(), request.isPublic());
 
         if (request.getTackles() != null) {
             List<TackleEntry> newTackles = request.getTackles().stream()
                     .map(TackleEntryRequest::toEntity)
                     .toList();
             visit.replaceTackles(newTackles);
+        }
+
+        if (request.getCatches() != null) {
+            List<CatchRecord> newCatches = request.getCatches().stream()
+                    .map(CatchRecordRequest::toEntity)
+                    .toList();
+            visit.replaceCatches(newCatches);
         }
 
         return new PointVisitResponse(visit);

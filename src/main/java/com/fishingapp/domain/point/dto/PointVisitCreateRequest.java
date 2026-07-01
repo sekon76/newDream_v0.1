@@ -1,5 +1,7 @@
 package com.fishingapp.domain.point.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
@@ -15,5 +17,15 @@ public class PointVisitCreateRequest {
 
     private String memo;
 
+    private String title;
+
+    private String content;
+
+    @JsonProperty("isPublic")
+    private boolean isPublic = false;
+
     private List<TackleEntryRequest> tackles = new ArrayList<>();
+
+    @Valid
+    private List<CatchRecordRequest> catches = new ArrayList<>();
 }
