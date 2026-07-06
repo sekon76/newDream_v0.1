@@ -20,11 +20,12 @@ public class PredictionService {
     public PredictionResponse predict(double latitude, double longitude, LocalDate date) {
         WeatherInfo weather = weatherClient.fetch(latitude, longitude, date);
         TideInfo tide = tideClient.fetch(latitude, longitude, date);
+        var hourlyWeather = weatherClient.fetchHourly(latitude, longitude, date);
 
         Integer score = (weather == null && tide == null) ? null : calcScore(weather, tide);
         String grade = toGrade(score);
 
-        return new PredictionResponse(date, latitude, longitude, weather, tide, score, grade);
+        return new PredictionResponse(date, latitude, longitude, weather, tide, score, grade, hourlyWeather);
     }
 
     private int calcScore(WeatherInfo weather, TideInfo tide) {

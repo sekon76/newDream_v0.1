@@ -3,6 +3,7 @@ package com.fishingapp.global.external.kma;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fishingapp.domain.point.entity.WeatherInfo;
+import com.fishingapp.domain.prediction.dto.HourlyWeatherItem;
 import com.fishingapp.global.external.WeatherClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,7 +13,9 @@ import org.springframework.web.client.RestClient;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -56,6 +59,61 @@ public class KmaWeatherClient implements WeatherClient {
             log.warn("기상청 날씨 API 호출 실패: {}", e.getMessage());
             return null;
         }
+    }
+
+    @Override
+    public List<HourlyWeatherItem> fetchHourly(double latitude, double longitude, LocalDate date) {
+        if (apiKey == null || apiKey.isBlank()) return List.of();
+
+        BaseDateTime base = resolveBaseDateTime(date);
+        if (base == null) return List.of();
+
+        int[] grid = LatLonToGrid.convert(latitude, longitude);
+
+        try {
+            String url = String.format(
+                    "%s/getVilageFcst?ServiceKey=%s&pageNo=1&numOfRows=1000&dataType=JSON" +
+                    "&base_date=%s&base_time=%s&nx=%d&ny=%d",
+                    BASE_URL, apiKey, base.date(), base.time(), grid[0], grid[1]);
+
+            String body = restClient.get().uri(url).retrieve().body(String.class);
+            return parseHourly(body, date);
+        } catch (Exception e) {
+            log.warn("기상청 시간대별 날씨 API 호출 실패: {}", e.getMessage());
+            return List.of();
+        }
+    }
+
+    private List<HourlyWeatherItem> parseHourly(String json, LocalDate targetDate) throws Exception {
+        JsonNode root = objectMapper.readTree(json);
+        String resultCode = root.path("response").path("header").path("resultCode").asText();
+        if (!"00".equals(resultCode)) return List.of();
+
+        String targetDateStr = targetDate.format(DATE_FMT);
+        JsonNode items = root.path("response").path("body").path("items").path("item");
+
+        TreeMap<String, Map<String, String>> byTime = new TreeMap<>();
+        for (JsonNode item : items) {
+            if (!targetDateStr.equals(item.path("fcstDate").asText())) continue;
+            String fcstTime = item.path("fcstTime").asText();
+            byTime.computeIfAbsent(fcstTime, k -> new HashMap<>())
+                  .put(item.path("category").asText(), item.path("fcstValue").asText());
+        }
+
+        List<HourlyWeatherItem> result = new ArrayList<>();
+        for (Map.Entry<String, Map<String, String>> entry : byTime.entrySet()) {
+            Map<String, String> data = entry.getValue();
+            WeatherInfo weather = WeatherInfo.builder()
+                    .condition(resolveCondition(data.getOrDefault("SKY", "1"), data.getOrDefault("PTY", "0")))
+                    .temperature(toDouble(data.get("TMP")))
+                    .humidity(toInt(data.get("REH")))
+                    .windSpeed(toDouble(data.get("WSD")))
+                    .windDirection(toWindDirection(toInt(data.get("VEC"))))
+                    .waveHeight(toDouble(data.get("WAV")))
+                    .build();
+            result.add(new HourlyWeatherItem(entry.getKey(), weather));
+        }
+        return result;
     }
 
     private WeatherInfo parse(String json, LocalDate targetDate) throws Exception {

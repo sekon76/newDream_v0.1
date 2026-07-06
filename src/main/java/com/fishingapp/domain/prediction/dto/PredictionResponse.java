@@ -5,6 +5,7 @@ import com.fishingapp.domain.point.entity.WeatherInfo;
 import lombok.Getter;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 public class PredictionResponse {
@@ -15,10 +16,12 @@ public class PredictionResponse {
     private final TideInfo tide;
     private final Integer fishingScore;
     private final String fishingGrade;
+    private final List<HourlyWeatherItem> hourlyWeather;
 
     public PredictionResponse(LocalDate date, double latitude, double longitude,
                               WeatherInfo weather, TideInfo tide,
-                              Integer fishingScore, String fishingGrade) {
+                              Integer fishingScore, String fishingGrade,
+                              List<HourlyWeatherItem> hourlyWeather) {
         this.date = date;
         this.latitude = latitude;
         this.longitude = longitude;
@@ -26,5 +29,6 @@ public class PredictionResponse {
         this.tide = tide;
         this.fishingScore = fishingScore;
         this.fishingGrade = fishingGrade;
+        this.hourlyWeather = hourlyWeather;
     }
 }
