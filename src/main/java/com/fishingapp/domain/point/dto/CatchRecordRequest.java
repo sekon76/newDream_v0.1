@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
+import java.time.LocalTime;
+
 @Getter
 public class CatchRecordRequest {
 
@@ -20,12 +22,15 @@ public class CatchRecordRequest {
 
     private Integer weightG;
 
+    private LocalTime caughtTime;
+
     public CatchRecord toEntity() {
         return CatchRecord.builder()
                 .fishName(fishName)
                 .count(count)
                 .sizeCm(sizeCm)
                 .weightG(weightG)
+                .caughtTime(caughtTime)
                 .build();
     }
 }

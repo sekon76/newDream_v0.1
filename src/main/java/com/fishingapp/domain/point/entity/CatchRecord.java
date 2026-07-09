@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalTime;
+
 @Entity
 @Table(name = "catch_records")
 @Getter
@@ -30,12 +32,15 @@ public class CatchRecord {
 
     private Integer weightG;
 
+    private LocalTime caughtTime;
+
     @Builder
-    public CatchRecord(String fishName, Integer count, Integer sizeCm, Integer weightG) {
+    public CatchRecord(String fishName, Integer count, Integer sizeCm, Integer weightG, LocalTime caughtTime) {
         this.fishName = fishName;
         this.count = count;
         this.sizeCm = sizeCm;
         this.weightG = weightG;
+        this.caughtTime = caughtTime;
     }
 
     void assignTo(PointVisit visit) {
