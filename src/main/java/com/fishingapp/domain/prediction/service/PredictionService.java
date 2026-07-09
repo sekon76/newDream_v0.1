@@ -48,10 +48,10 @@ public class PredictionService {
             if (weather.getTemperature() != null) {
                 double t = weather.getTemperature();
                 if (t >= 15 && t <= 25)       score += 15;
-                else if (t >= 10 || t <= 30)  score += 10;
-                else if (t >= 5)              score += 5;
+                else if (t >= 10 && t < 30)   score += 10;
+                else if (t >= 5 && t < 10)    score += 5;
                 else if (t < 0)               score -= 10;
-                else if (t > 30)              score -= 5;
+                else                          score -= 5;
             }
             // 풍속
             if (weather.getWindSpeed() != null) {

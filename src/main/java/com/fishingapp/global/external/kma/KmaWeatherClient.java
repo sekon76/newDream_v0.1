@@ -14,6 +14,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -137,10 +138,16 @@ public class KmaWeatherClient implements WeatherClient {
         }
         if (byTime.isEmpty()) return null;
 
-        // 정오(1200) 우선, 없으면 1200 이후 가장 가까운 시각, 없으면 마지막 시각
-        Map<String, String> data = byTime.containsKey("1200") ? byTime.get("1200")
-                : byTime.ceilingKey("1200") != null ? byTime.get(byTime.ceilingKey("1200"))
-                : byTime.lastEntry().getValue();
+        // 조회 날짜가 오늘이면 현재 시각과 가장 가까운 예보, 아니면 정오(1200) 기준
+        Map<String, String> data;
+        if (targetDate.isEqual(LocalDate.now())) {
+            String nowTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HHmm"));
+            data = byTime.get(closestTime(byTime, nowTime));
+        } else {
+            data = byTime.containsKey("1200") ? byTime.get("1200")
+                    : byTime.ceilingKey("1200") != null ? byTime.get(byTime.ceilingKey("1200"))
+                    : byTime.lastEntry().getValue();
+        }
 
         return WeatherInfo.builder()
                 .condition(resolveCondition(data.getOrDefault("SKY", "1"), data.getOrDefault("PTY", "0")))
@@ -150,6 +157,13 @@ public class KmaWeatherClient implements WeatherClient {
                 .windDirection(toWindDirection(toInt(data.get("VEC"))))
                 .waveHeight(toDouble(data.get("WAV")))
                 .build();
+    }
+
+    private String closestTime(TreeMap<String, Map<String, String>> byTime, String targetTime) {
+        int target = Integer.parseInt(targetTime);
+        return byTime.keySet().stream()
+                .min(Comparator.comparingInt(k -> Math.abs(Integer.parseInt(k) - target)))
+                .orElse(null);
     }
 
     private String resolveCondition(String sky, String pty) {
