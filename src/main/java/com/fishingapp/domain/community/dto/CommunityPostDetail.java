@@ -26,8 +26,11 @@ public class CommunityPostDetail {
     private final List<TackleEntryResponse> tackles;
     private final List<CatchRecordResponse> catches;
     private final LocalDateTime createdAt;
+    private final long likeCount;
+    private final long commentCount;
+    private final boolean liked;
 
-    public CommunityPostDetail(PointVisit visit) {
+    public CommunityPostDetail(PointVisit visit, long likeCount, long commentCount, boolean liked) {
         this.visitId = visit.getId();
         this.authorNickname = visit.getFishingPoint().getUser().getNickname();
         this.pointName = visit.getFishingPoint().getName();
@@ -45,5 +48,8 @@ public class CommunityPostDetail {
                 .map(CatchRecordResponse::new)
                 .toList();
         this.createdAt = visit.getCreatedAt();
+        this.likeCount = likeCount;
+        this.commentCount = commentCount;
+        this.liked = liked;
     }
 }
