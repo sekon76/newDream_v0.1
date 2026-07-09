@@ -1,3 +1,4 @@
+import 'package:fishing_app/core/api/api_exception.dart';
 import 'package:fishing_app/features/auth/provider/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,7 +36,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
     final state = ref.read(authNotifierProvider);
     if (state is AsyncError) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('회원가입 실패: ${state.error}')),
+        SnackBar(content: Text('회원가입 실패: ${apiErrorMessage(state.error)}')),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

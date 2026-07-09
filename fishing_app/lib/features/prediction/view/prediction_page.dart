@@ -471,7 +471,7 @@ class _HourlyWeatherCardState extends State<_HourlyWeatherCard> {
 
             // 시각 선택 가로 스크롤
             SizedBox(
-              height: 72,
+              height: 80,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: widget.items.length,
