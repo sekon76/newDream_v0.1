@@ -32,6 +32,9 @@ dependencies:
   # 지역명 → 좌표 변환
   geocoding: ^3.0.0
 
+  # 네이버 지도 (위치 직접 선택용)
+  flutter_naver_map: ^1.4.4
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
