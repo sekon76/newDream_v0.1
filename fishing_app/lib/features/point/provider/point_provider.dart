@@ -77,6 +77,38 @@ class PointActions extends _$PointActions {
     return state is AsyncData;
   }
 
+  /// 커뮤니티 글쓰기: 위치 정보로 포인트를 새로 만들고, 그 아래에 공개 방문기록(글)을 등록한다.
+  Future<bool> createCommunityPost({
+    required String title,
+    required String content,
+    required String locationName,
+    String? address,
+    required double latitude,
+    required double longitude,
+  }) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      final point = await ref.read(pointRepositoryProvider).createPoint(
+            name: locationName,
+            latitude: latitude,
+            longitude: longitude,
+            address: address ?? locationName,
+          );
+      await ref.read(pointRepositoryProvider).createVisit(
+            point.id,
+            visitDate: DateTime.now(),
+            title: title,
+            content: content,
+            isPublic: true,
+          );
+    });
+    if (state is AsyncData) {
+      ref.invalidate(pointsProvider);
+      ref.invalidate(communityFeedProvider);
+    }
+    return state is AsyncData;
+  }
+
   Future<bool> updateVisit(
     int pointId,
     int visitId, {

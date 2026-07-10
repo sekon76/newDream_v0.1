@@ -1,13 +1,10 @@
 import 'package:fishing_app/core/api/api_exception.dart';
 import 'package:fishing_app/features/community/data/community_model.dart';
 import 'package:fishing_app/features/community/provider/community_provider.dart';
+import 'package:fishing_app/features/community/view/community_post_create_page.dart';
 import 'package:fishing_app/features/community/view/community_post_detail_page.dart';
-import 'package:fishing_app/features/point/data/point_model.dart';
-import 'package:fishing_app/features/point/provider/point_provider.dart';
-import 'package:fishing_app/features/point/view/visit_create_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 String weatherIcon(String? c) => switch (c) {
       '맑음' => '☀️',
@@ -48,51 +45,9 @@ class _CommunityPageState extends ConsumerState<CommunityPage> {
     }
   }
 
-  Future<void> _startWritePost() async {
-    final points = await ref.read(pointsProvider.future);
-    if (!mounted) return;
-
-    if (points.isEmpty) {
-      final goCreate = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('포인트가 없습니다'),
-          content: const Text('커뮤니티에 글을 올리려면 먼저 낚시 포인트를 등록해야 합니다.'),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('취소')),
-            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('포인트 등록하기')),
-          ],
-        ),
-      );
-      if (goCreate == true && mounted) context.push('/points/create');
-      return;
-    }
-
-    FishingPoint? selected = points.length == 1 ? points.first : null;
-    if (selected == null) {
-      selected = await showModalBottomSheet<FishingPoint>(
-        context: context,
-        builder: (ctx) => ListView(
-          shrinkWrap: true,
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text('어느 포인트의 방문 기록을 올릴까요?', style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            for (final p in points)
-              ListTile(
-                title: Text(p.name),
-                subtitle: p.address != null && p.address!.isNotEmpty ? Text(p.address!) : null,
-                onTap: () => Navigator.pop(ctx, p),
-              ),
-          ],
-        ),
-      );
-    }
-    if (selected == null || !mounted) return;
-
+  void _startWritePost() {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => VisitCreatePage(pointId: selected!.id, defaultPublic: true)),
+      MaterialPageRoute(builder: (_) => const CommunityPostCreatePage()),
     );
   }
 
