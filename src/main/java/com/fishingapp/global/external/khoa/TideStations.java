@@ -41,6 +41,15 @@ class TideStations {
         return nearest;
     }
 
+    static double distanceToNearestKm(double lat, double lon) {
+        double minDist = Double.MAX_VALUE;
+        for (Station s : ALL) {
+            double dist = haversine(lat, lon, s.lat(), s.lon());
+            if (dist < minDist) minDist = dist;
+        }
+        return minDist;
+    }
+
     private static double haversine(double lat1, double lon1, double lat2, double lon2) {
         double dLat = Math.toRadians(lat2 - lat1);
         double dLon = Math.toRadians(lon2 - lon1);

@@ -25,6 +25,7 @@ public class KhoaTideClient implements TideClient {
     private static final String BASE_URL =
             "https://apis.data.go.kr/1192136/tideFcstHghLw/GetTideFcstHghLwApiService";
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyyMMdd");
+    private static final double MAX_COAST_DISTANCE_KM = 25.0;
 
     @Value("${external.khoa.api-key:}")
     private String apiKey;
@@ -33,6 +34,11 @@ public class KhoaTideClient implements TideClient {
 
     public KhoaTideClient() {
         this.restClient = RestClient.create();
+    }
+
+    @Override
+    public boolean isNearCoast(double latitude, double longitude) {
+        return TideStations.distanceToNearestKm(latitude, longitude) <= MAX_COAST_DISTANCE_KM;
     }
 
     @Override

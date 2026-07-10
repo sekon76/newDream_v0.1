@@ -22,8 +22,9 @@ public class PredictionService {
         TideInfo tide = tideClient.fetch(latitude, longitude, date);
         var hourlyWeather = weatherClient.fetchHourly(latitude, longitude, date);
 
-        Integer score = (weather == null && tide == null) ? null : calcScore(weather, tide);
-        String grade = toGrade(score);
+        boolean nearCoast = tideClient.isNearCoast(latitude, longitude);
+        Integer score = (!nearCoast || (weather == null && tide == null)) ? null : calcScore(weather, tide);
+        String grade = nearCoast ? toGrade(score) : "예측 불가 (바다와 너무 멉니다)";
 
         return new PredictionResponse(date, latitude, longitude, weather, tide, score, grade, hourlyWeather);
     }

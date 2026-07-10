@@ -348,14 +348,16 @@ class _ScoreCard extends StatelessWidget {
 
   const _ScoreCard({required this.result, this.locationName, this.selectedFish});
 
-  int get _score {
-    final base = result.fishingScore ?? 50;
+  int? get _score {
+    final base = result.fishingScore;
+    if (base == null) return null;
     if (selectedFish == null) return base;
     return selectedFish!.adjustScore(base, result.weather?.temperature, result.weather?.windSpeed);
   }
 
   String get _grade {
     final s = _score;
+    if (s == null) return result.fishingGrade ?? '예측 불가';
     if (s >= 80) return '매우 좋음';
     if (s >= 60) return '좋음';
     if (s >= 40) return '보통';
@@ -363,7 +365,8 @@ class _ScoreCard extends StatelessWidget {
     return '매우 나쁨';
   }
 
-  Color _color(int s) {
+  Color _color(int? s) {
+    if (s == null) return Colors.grey;
     if (s >= 80) return Colors.blue;
     if (s >= 60) return Colors.green;
     if (s >= 40) return Colors.orange;
@@ -387,10 +390,12 @@ class _ScoreCard extends StatelessWidget {
                   style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15)),
             ],
             const SizedBox(height: 12),
-            Text('$score점',
-                style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                    color: color, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
+            if (score != null) ...[
+              Text('$score점',
+                  style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                      color: color, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+            ],
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
               decoration: BoxDecoration(
