@@ -663,7 +663,7 @@ class _TideCard extends StatelessWidget {
                   const SizedBox(width: 12),
                   Text(e.time, style: const TextStyle(fontSize: 16)),
                   const Spacer(),
-                  Text(e.height != null ? '${e.height} cm' : '-',
+                  Text(e.height != null ? '해수면 높이 ${(e.height! / 100).toStringAsFixed(2)}m' : '-',
                       style: const TextStyle(fontWeight: FontWeight.w500)),
                 ]),
               );
