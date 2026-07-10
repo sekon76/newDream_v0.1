@@ -1,9 +1,20 @@
 import 'package:fishing_app/features/point/data/point_model.dart';
+import 'package:fishing_app/features/point/view/visit_create_page.dart';
 import 'package:flutter/material.dart';
 
 class VisitDetailPage extends StatelessWidget {
+  final int pointId;
   final PointVisit visit;
-  const VisitDetailPage({super.key, required this.visit});
+  const VisitDetailPage({super.key, required this.pointId, required this.visit});
+
+  Future<void> _edit(BuildContext context) async {
+    final updated = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => VisitCreatePage(pointId: pointId, existing: visit)),
+    );
+    if (updated == true && context.mounted) {
+      Navigator.of(context).pop();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -11,7 +22,12 @@ class VisitDetailPage extends StatelessWidget {
         '${visit.visitDate.year}-${visit.visitDate.month.toString().padLeft(2, '0')}-${visit.visitDate.day.toString().padLeft(2, '0')}';
 
     return Scaffold(
-      appBar: AppBar(title: Text(visit.title?.isNotEmpty == true ? visit.title! : '방문 기록')),
+      appBar: AppBar(
+        title: Text(visit.title?.isNotEmpty == true ? visit.title! : '방문 기록'),
+        actions: [
+          IconButton(icon: const Icon(Icons.edit_outlined), onPressed: () => _edit(context)),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

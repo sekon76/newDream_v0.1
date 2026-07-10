@@ -46,7 +46,7 @@ class PointDetailPage extends ConsumerWidget {
                   );
                 }
                 return Column(
-                  children: visits.map((v) => _VisitCard(visit: v)).toList(),
+                  children: visits.map((v) => _VisitCard(pointId: pointId, visit: v)).toList(),
                 );
               },
             ),
@@ -107,8 +107,9 @@ class _PointInfoCard extends StatelessWidget {
 }
 
 class _VisitCard extends StatelessWidget {
+  final int pointId;
   final PointVisit visit;
-  const _VisitCard({required this.visit});
+  const _VisitCard({required this.pointId, required this.visit});
 
   @override
   Widget build(BuildContext context) {
@@ -120,7 +121,7 @@ class _VisitCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
         onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => VisitDetailPage(visit: visit)),
+          MaterialPageRoute(builder: (_) => VisitDetailPage(pointId: pointId, visit: visit)),
         ),
         child: Padding(
           padding: const EdgeInsets.all(16),

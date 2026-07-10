@@ -63,7 +63,57 @@ class PointRepository {
     List<TackleEntryData> tackles = const [],
     List<CatchRecordData> catches = const [],
   }) async {
-    final res = await _dio.post('/points/$pointId/visits', data: {
+    final res = await _dio.post(
+      '/points/$pointId/visits',
+      data: _visitPayload(
+        visitDate: visitDate,
+        title: title,
+        content: content,
+        memo: memo,
+        isPublic: isPublic,
+        tackles: tackles,
+        catches: catches,
+      ),
+    );
+    return PointVisit.fromJson(res.data as Map<String, dynamic>);
+  }
+
+  Future<PointVisit> updateVisit(
+    int pointId,
+    int visitId, {
+    required DateTime visitDate,
+    String? title,
+    String? content,
+    String? memo,
+    bool isPublic = false,
+    List<TackleEntryData> tackles = const [],
+    List<CatchRecordData> catches = const [],
+  }) async {
+    final res = await _dio.put(
+      '/points/$pointId/visits/$visitId',
+      data: _visitPayload(
+        visitDate: visitDate,
+        title: title,
+        content: content,
+        memo: memo,
+        isPublic: isPublic,
+        tackles: tackles,
+        catches: catches,
+      ),
+    );
+    return PointVisit.fromJson(res.data as Map<String, dynamic>);
+  }
+
+  Map<String, dynamic> _visitPayload({
+    required DateTime visitDate,
+    String? title,
+    String? content,
+    String? memo,
+    required bool isPublic,
+    required List<TackleEntryData> tackles,
+    required List<CatchRecordData> catches,
+  }) {
+    return {
       'visitDate':
           '${visitDate.year.toString().padLeft(4, '0')}-${visitDate.month.toString().padLeft(2, '0')}-${visitDate.day.toString().padLeft(2, '0')}',
       'title': title,
@@ -72,7 +122,6 @@ class PointRepository {
       'isPublic': isPublic,
       'tackles': tackles.map((e) => e.toJson()).toList(),
       'catches': catches.map((e) => e.toJson()).toList(),
-    });
-    return PointVisit.fromJson(res.data as Map<String, dynamic>);
+    };
   }
 }

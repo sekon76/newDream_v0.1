@@ -1,3 +1,4 @@
+import 'package:fishing_app/features/community/provider/community_provider.dart';
 import 'package:fishing_app/features/point/data/point_model.dart';
 import 'package:fishing_app/features/point/data/point_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -69,7 +70,41 @@ class PointActions extends _$PointActions {
           tackles: tackles,
           catches: catches,
         ));
-    if (state is AsyncData) ref.invalidate(pointVisitsProvider(pointId));
+    if (state is AsyncData) {
+      ref.invalidate(pointVisitsProvider(pointId));
+      if (isPublic) ref.invalidate(communityFeedProvider);
+    }
+    return state is AsyncData;
+  }
+
+  Future<bool> updateVisit(
+    int pointId,
+    int visitId, {
+    required DateTime visitDate,
+    String? title,
+    String? content,
+    String? memo,
+    bool isPublic = false,
+    List<TackleEntryData> tackles = const [],
+    List<CatchRecordData> catches = const [],
+  }) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() => ref.read(pointRepositoryProvider).updateVisit(
+          pointId,
+          visitId,
+          visitDate: visitDate,
+          title: title,
+          content: content,
+          memo: memo,
+          isPublic: isPublic,
+          tackles: tackles,
+          catches: catches,
+        ));
+    if (state is AsyncData) {
+      ref.invalidate(pointVisitsProvider(pointId));
+      ref.invalidate(communityFeedProvider);
+      ref.invalidate(communityPostDetailProvider(visitId));
+    }
     return state is AsyncData;
   }
 }

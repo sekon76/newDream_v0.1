@@ -7,7 +7,9 @@ import 'package:go_router/go_router.dart';
 
 class VisitCreatePage extends ConsumerStatefulWidget {
   final int pointId;
-  const VisitCreatePage({super.key, required this.pointId});
+  final PointVisit? existing;
+  final bool defaultPublic;
+  const VisitCreatePage({super.key, required this.pointId, this.existing, this.defaultPublic = false});
 
   @override
   ConsumerState<VisitCreatePage> createState() => _VisitCreatePageState();
@@ -19,12 +21,36 @@ class _CatchRow {
   final sizeCtrl = TextEditingController();
   final weightCtrl = TextEditingController();
   TimeOfDay? caughtTime;
+
+  _CatchRow();
+
+  factory _CatchRow.from(CatchRecordData data) {
+    final row = _CatchRow()
+      ..fishNameCtrl.text = data.fishName
+      ..countCtrl.text = data.count.toString()
+      ..sizeCtrl.text = data.sizeCm?.toString() ?? ''
+      ..weightCtrl.text = data.weightG?.toString() ?? '';
+    if (data.caughtTime != null) {
+      final parts = data.caughtTime!.split(':');
+      row.caughtTime = TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+    }
+    return row;
+  }
 }
 
 class _TackleRow {
   final tackleTypeCtrl = TextEditingController();
   final baitCtrl = TextEditingController();
   final memoCtrl = TextEditingController();
+
+  _TackleRow();
+
+  factory _TackleRow.from(TackleEntryData data) {
+    return _TackleRow()
+      ..tackleTypeCtrl.text = data.tackleType ?? ''
+      ..baitCtrl.text = data.bait ?? ''
+      ..memoCtrl.text = data.memo ?? '';
+  }
 }
 
 class _VisitCreatePageState extends ConsumerState<VisitCreatePage> {
@@ -38,6 +64,25 @@ class _VisitCreatePageState extends ConsumerState<VisitCreatePage> {
   final List<_TackleRow> _tackleRows = [];
   DateTime? _lastCatchAddTap;
   DateTime? _lastTackleAddTap;
+
+  bool get _isEditing => widget.existing != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final existing = widget.existing;
+    if (existing != null) {
+      _titleCtrl.text = existing.title ?? '';
+      _contentCtrl.text = existing.content ?? '';
+      _memoCtrl.text = existing.memo ?? '';
+      _visitDate = existing.visitDate;
+      _isPublic = existing.isPublic;
+      _catchRows.addAll(existing.catches.map(_CatchRow.from));
+      _tackleRows.addAll(existing.tackles.map(_TackleRow.from));
+    } else {
+      _isPublic = widget.defaultPublic;
+    }
+  }
 
   bool _debounce(DateTime? last, void Function(DateTime) update) {
     final now = DateTime.now();
@@ -96,23 +141,41 @@ class _VisitCreatePageState extends ConsumerState<VisitCreatePage> {
       ));
     }
 
-    final ok = await ref.read(pointActionsProvider.notifier).createVisit(
-          widget.pointId,
-          visitDate: _visitDate,
-          title: _titleCtrl.text.trim().isEmpty ? null : _titleCtrl.text.trim(),
-          content: _contentCtrl.text.trim().isEmpty ? null : _contentCtrl.text.trim(),
-          memo: _memoCtrl.text.trim().isEmpty ? null : _memoCtrl.text.trim(),
-          isPublic: _isPublic,
-          tackles: tackles,
-          catches: catches,
-        );
+    final notifier = ref.read(pointActionsProvider.notifier);
+    final existing = widget.existing;
+    final ok = existing != null
+        ? await notifier.updateVisit(
+            widget.pointId,
+            existing.id,
+            visitDate: _visitDate,
+            title: _titleCtrl.text.trim().isEmpty ? null : _titleCtrl.text.trim(),
+            content: _contentCtrl.text.trim().isEmpty ? null : _contentCtrl.text.trim(),
+            memo: _memoCtrl.text.trim().isEmpty ? null : _memoCtrl.text.trim(),
+            isPublic: _isPublic,
+            tackles: tackles,
+            catches: catches,
+          )
+        : await notifier.createVisit(
+            widget.pointId,
+            visitDate: _visitDate,
+            title: _titleCtrl.text.trim().isEmpty ? null : _titleCtrl.text.trim(),
+            content: _contentCtrl.text.trim().isEmpty ? null : _contentCtrl.text.trim(),
+            memo: _memoCtrl.text.trim().isEmpty ? null : _memoCtrl.text.trim(),
+            isPublic: _isPublic,
+            tackles: tackles,
+            catches: catches,
+          );
     if (!mounted) return;
     if (ok) {
-      context.pop();
+      if (existing != null) {
+        Navigator.of(context).pop(true);
+      } else {
+        context.pop();
+      }
     } else {
       final error = ref.read(pointActionsProvider).error;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('등록 실패: ${apiErrorMessage(error)}')),
+        SnackBar(content: Text('${_isEditing ? '수정' : '등록'} 실패: ${apiErrorMessage(error)}')),
       );
     }
   }
@@ -124,7 +187,7 @@ class _VisitCreatePageState extends ConsumerState<VisitCreatePage> {
         '${_visitDate.year}-${_visitDate.month.toString().padLeft(2, '0')}-${_visitDate.day.toString().padLeft(2, '0')}';
 
     return Scaffold(
-      appBar: AppBar(title: const Text('방문 기록 추가')),
+      appBar: AppBar(title: Text(_isEditing ? '방문 기록 수정' : '방문 기록 추가')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -198,7 +261,7 @@ class _VisitCreatePageState extends ConsumerState<VisitCreatePage> {
                           width: 20,
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                         )
-                      : const Text('저장하기'),
+                      : Text(_isEditing ? '수정 완료' : '저장하기'),
                 ),
               ],
             ),
