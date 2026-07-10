@@ -8,8 +8,7 @@ import 'package:go_router/go_router.dart';
 class VisitCreatePage extends ConsumerStatefulWidget {
   final int pointId;
   final PointVisit? existing;
-  final bool defaultPublic;
-  const VisitCreatePage({super.key, required this.pointId, this.existing, this.defaultPublic = false});
+  const VisitCreatePage({super.key, required this.pointId, this.existing});
 
   @override
   ConsumerState<VisitCreatePage> createState() => _VisitCreatePageState();
@@ -59,7 +58,6 @@ class _VisitCreatePageState extends ConsumerState<VisitCreatePage> {
   final _contentCtrl = TextEditingController();
   final _memoCtrl = TextEditingController();
   DateTime _visitDate = DateTime.now();
-  bool _isPublic = false;
   final List<_CatchRow> _catchRows = [];
   final List<_TackleRow> _tackleRows = [];
   DateTime? _lastCatchAddTap;
@@ -76,11 +74,8 @@ class _VisitCreatePageState extends ConsumerState<VisitCreatePage> {
       _contentCtrl.text = existing.content ?? '';
       _memoCtrl.text = existing.memo ?? '';
       _visitDate = existing.visitDate;
-      _isPublic = existing.isPublic;
       _catchRows.addAll(existing.catches.map(_CatchRow.from));
       _tackleRows.addAll(existing.tackles.map(_TackleRow.from));
-    } else {
-      _isPublic = widget.defaultPublic;
     }
   }
 
@@ -151,7 +146,7 @@ class _VisitCreatePageState extends ConsumerState<VisitCreatePage> {
             title: _titleCtrl.text.trim().isEmpty ? null : _titleCtrl.text.trim(),
             content: _contentCtrl.text.trim().isEmpty ? null : _contentCtrl.text.trim(),
             memo: _memoCtrl.text.trim().isEmpty ? null : _memoCtrl.text.trim(),
-            isPublic: _isPublic,
+            isPublic: false,
             tackles: tackles,
             catches: catches,
           )
@@ -161,7 +156,7 @@ class _VisitCreatePageState extends ConsumerState<VisitCreatePage> {
             title: _titleCtrl.text.trim().isEmpty ? null : _titleCtrl.text.trim(),
             content: _contentCtrl.text.trim().isEmpty ? null : _contentCtrl.text.trim(),
             memo: _memoCtrl.text.trim().isEmpty ? null : _memoCtrl.text.trim(),
-            isPublic: _isPublic,
+            isPublic: false,
             tackles: tackles,
             catches: catches,
           );
@@ -218,13 +213,6 @@ class _VisitCreatePageState extends ConsumerState<VisitCreatePage> {
                 TextFormField(
                   controller: _memoCtrl,
                   decoration: const InputDecoration(labelText: '메모', border: OutlineInputBorder()),
-                ),
-                const SizedBox(height: 8),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('커뮤니티에 공개'),
-                  value: _isPublic,
-                  onChanged: (v) => setState(() => _isPublic = v),
                 ),
                 const SizedBox(height: 24),
                 _SectionHeader(

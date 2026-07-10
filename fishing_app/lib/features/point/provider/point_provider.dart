@@ -45,7 +45,11 @@ class PointActions extends _$PointActions {
           fishType: fishType,
           isPublic: isPublic,
         ));
-    if (state is AsyncData) ref.invalidate(pointsProvider);
+    if (state is AsyncData) {
+      ref.invalidate(pointsProvider);
+      // 포인트를 공개로 등록하면 백엔드가 커뮤니티 안내 게시글을 자동으로 만든다.
+      if (isPublic) ref.invalidate(communityFeedProvider);
+    }
     return state is AsyncData;
   }
 
