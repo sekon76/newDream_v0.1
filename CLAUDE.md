@@ -77,8 +77,8 @@ expiration: 86400000  # 24시간(ms)
 - [x] **domain/prediction** — KMA(기상청)/KHOA(해양수산부) 실 API 연동 완료 (Stub 아님). 해안 25km 초과 시 "예측 불가" 처리
 - [x] **domain/community** — 커뮤니티 피드/글쓰기/좋아요/댓글 완료. 게시글은 별도 엔티티가 아니라 `isPublic=true`인 `PointVisit`. 포인트를 공개로 전환하면 `[포인트 공개]` 게시글 자동 생성
 - [x] **global/external** — 날씨·조석 클라이언트 (KMA/KHOA 실 연동)
-- [x] Flutter 앱 — 인증/포인트/예측/커뮤니티 화면 구현, Android 에뮬레이터 실기 테스트 완료
-- [ ] domain/diary — 독립된 "낚시 일지" 도메인 (현재는 point/PointVisit + CatchRecord로 조황 기록을 대신하고 있음, 별도 화면·API 없음)
+- [x] Flutter 앱 — 인증/포인트/예측/일지/커뮤니티 화면 구현, Android 에뮬레이터 실기 테스트 완료
+- [x] **domain/diary** — 독립된 "낚시 일지" CRUD. 저장된 포인트 없이도 위치(검색/현재 위치/지도)를 직접 지정해 작성 가능하며, 포인트를 선택적으로 연결할 수도 있음. 날씨/조석은 방문기록과 동일하게 KMA/KHOA로 자동 기록. 공개 여부 없음(항상 개인용)
 - [ ] 수익 모델 — AdMob 광고, 프리미엄 구독 (미착수)
 
 ---
@@ -105,7 +105,7 @@ expiration: 86400000  # 24시간(ms)
 2. ~~**포인트 도메인** - 낚시 장소 CRUD + 방문기록(채비/미끼/날씨/조석)~~ ✅ 완료
 3. ~~**예측 도메인** - 날씨·조석 API 연동~~ ✅ 완료 (KMA/KHOA 실 API)
 4. ~~**공유 도메인** - 커뮤니티 게시판~~ ✅ 완료 (피드/글쓰기/좋아요/댓글/포인트 공개 연동)
-5. **일지 도메인** - 독립된 낚시 일지 CRUD (필요 여부 검토 중 — 현재 point/PointVisit이 대신 담당)
+5. ~~**일지 도메인** - 독립된 낚시 일지 CRUD~~ ✅ 완료 (포인트 없이도 작성 가능)
 6. **수익 모델** - AdMob 광고, 프리미엄 구독
 
 ---
@@ -134,7 +134,10 @@ com.fishingapp
 │   │   ├── controller    # CommunityController (/api/community)
 │   │   ├── entity        # PostLike, Comment
 │   │   └── service       # CommunityService, LikeService, CommentService
-│   └── diary             # 낚시 일지 (미착수 — 현재 point 도메인이 역할 대신 수행)
+│   └── diary             # 낚시 일지 ✅ (포인트 없이도 작성 가능, 포인트 선택적 연결)
+│       ├── controller    # DiaryController (/api/diaries)
+│       ├── entity        # Diary, DiaryTackleEntry, DiaryCatchRecord
+│       └── service       # DiaryService (KMA/KHOA 연동)
 ├── global
 │   ├── config            # SecurityConfig, JwtAuthenticationFilter, RedisConfig, JwtProperties ✅
 │   ├── exception         # GlobalExceptionHandler, ErrorResponse ✅
@@ -161,6 +164,11 @@ com.fishingapp
 | DELETE | /api/points/{id}/visits/{visitId} | Bearer 토큰 | 방문기록 삭제 |
 | GET | /api/predictions | Bearer 토큰 | 위치 기반 조과 예측 (KMA/KHOA 연동) |
 | GET | /api/predictions/hourly | Bearer 토큰 | 시간대별 예측 |
+| POST | /api/diaries | Bearer 토큰 | 낚시 일지 등록 (포인트 연결 선택) |
+| GET | /api/diaries | Bearer 토큰 | 내 일지 목록 |
+| GET | /api/diaries/{id} | Bearer 토큰 | 일지 상세 |
+| PUT | /api/diaries/{id} | Bearer 토큰 | 일지 수정 |
+| DELETE | /api/diaries/{id} | Bearer 토큰 | 일지 삭제 |
 | GET | /api/community/posts | Bearer 토큰 | 커뮤니티 피드 목록 |
 | GET | /api/community/posts/{visitId} | Bearer 토큰 | 게시글 상세 |
 | POST/DELETE | /api/community/posts/{visitId}/likes | Bearer 토큰 | 좋아요 등록/취소 |
