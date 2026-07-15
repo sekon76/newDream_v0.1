@@ -8,6 +8,7 @@ class HomeShell extends StatelessWidget {
   static const _tabs = [
     (icon: Icons.wb_sunny_outlined, label: '예측', path: '/prediction'),
     (icon: Icons.location_on_outlined, label: '포인트', path: '/points'),
+    (icon: Icons.menu_book_outlined, label: '일지', path: '/diary'),
     (icon: Icons.people_outline, label: '커뮤니티', path: '/community'),
   ];
 
@@ -22,6 +23,7 @@ class HomeShell extends StatelessWidget {
     return Scaffold(
       body: child,
       bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
         currentIndex: _currentIndex(context),
         onTap: (i) => context.go(_tabs[i].path),
         items: _tabs

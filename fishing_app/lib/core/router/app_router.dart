@@ -2,6 +2,7 @@ import 'package:fishing_app/features/auth/provider/auth_provider.dart';
 import 'package:fishing_app/features/auth/view/login_page.dart';
 import 'package:fishing_app/features/auth/view/signup_page.dart';
 import 'package:fishing_app/features/community/view/community_page.dart';
+import 'package:fishing_app/features/diary/view/diary_list_page.dart';
 import 'package:fishing_app/features/home/view/home_shell.dart';
 import 'package:fishing_app/features/point/view/point_create_page.dart';
 import 'package:fishing_app/features/point/view/point_detail_page.dart';
@@ -46,6 +47,7 @@ GoRouter appRouter(Ref ref) {
         routes: [
           GoRoute(path: '/prediction', builder: (context, state) => const PredictionPage()),
           GoRoute(path: '/points', builder: (context, state) => const PointListPage()),
+          GoRoute(path: '/diary', builder: (context, state) => const DiaryListPage()),
           GoRoute(path: '/community', builder: (context, state) => const CommunityPage()),
         ],
       ),
