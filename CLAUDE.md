@@ -62,7 +62,7 @@ expiration: 86400000  # 24시간(ms)
 
 ---
 
-## 현재 프로젝트 상태 (2026-06-29 기준)
+## 현재 프로젝트 상태 (2026-07-15 기준)
 
 - [x] 프로젝트 구조 생성 (Gradle, Spring Boot)
 - [x] PostgreSQL 설치 및 DB/유저 생성
@@ -74,10 +74,12 @@ expiration: 86400000  # 24시간(ms)
 - [x] **global/exception** — 공통 예외 처리 (JSON 에러 응답)
 - [x] **domain/user** — 회원가입/로그인/로그아웃 API 완료 (실행 테스트 통과)
 - [x] **domain/point** — 낚시 포인트 CRUD + 방문기록(채비/미끼/날씨/조석) 완료
-- [x] **global/external** — 날씨·조석 클라이언트 인터페이스 (Stub 구현)
-- [ ] domain/diary — 낚시 일지 CRUD
-- [ ] domain/prediction — 날씨·조석 API 연동 (Stub → 실제 API 교체)
-- [ ] domain/community — 커뮤니티 게시판
+- [x] **domain/prediction** — KMA(기상청)/KHOA(해양수산부) 실 API 연동 완료 (Stub 아님). 해안 25km 초과 시 "예측 불가" 처리
+- [x] **domain/community** — 커뮤니티 피드/글쓰기/좋아요/댓글 완료. 게시글은 별도 엔티티가 아니라 `isPublic=true`인 `PointVisit`. 포인트를 공개로 전환하면 `[포인트 공개]` 게시글 자동 생성
+- [x] **global/external** — 날씨·조석 클라이언트 (KMA/KHOA 실 연동)
+- [x] Flutter 앱 — 인증/포인트/예측/커뮤니티 화면 구현, Android 에뮬레이터 실기 테스트 완료
+- [ ] domain/diary — 독립된 "낚시 일지" 도메인 (현재는 point/PointVisit + CatchRecord로 조황 기록을 대신하고 있음, 별도 화면·API 없음)
+- [ ] 수익 모델 — AdMob 광고, 프리미엄 구독 (미착수)
 
 ---
 
@@ -101,9 +103,10 @@ expiration: 86400000  # 24시간(ms)
 
 1. ~~**회원 도메인** - 회원가입/로그인, JWT 인증~~ ✅ 완료
 2. ~~**포인트 도메인** - 낚시 장소 CRUD + 방문기록(채비/미끼/날씨/조석)~~ ✅ 완료
-3. **일지 도메인** - 조황 기록 CRUD
-4. **예측 도메인** - 날씨·조석 API 연동
-5. **공유 도메인** - 커뮤니티 게시판
+3. ~~**예측 도메인** - 날씨·조석 API 연동~~ ✅ 완료 (KMA/KHOA 실 API)
+4. ~~**공유 도메인** - 커뮤니티 게시판~~ ✅ 완료 (피드/글쓰기/좋아요/댓글/포인트 공개 연동)
+5. **일지 도메인** - 독립된 낚시 일지 CRUD (필요 여부 검토 중 — 현재 point/PointVisit이 대신 담당)
+6. **수익 모델** - AdMob 광고, 프리미엄 구독
 
 ---
 
@@ -123,14 +126,19 @@ com.fishingapp
 │   │   ├── dto           # PointCreate/Update/Response, PointVisitCreate/Update/Response, TackleEntryRequest/Response
 │   │   ├── entity        # FishingPoint, PointVisit, TackleEntry, WeatherInfo(@Embeddable), TideInfo(@Embeddable)
 │   │   ├── repository    # FishingPointRepository, PointVisitRepository
-│   │   └── service       # FishingPointService, PointVisitService
-│   ├── diary             # 낚시 일지 (예정)
-│   ├── prediction        # 조과 예측 (예정)
-│   └── community         # 공유/커뮤니티 (예정)
+│   │   └── service       # FishingPointService (포인트 공개 시 커뮤니티 자동게시 포함), PointVisitService
+│   ├── prediction        # 조과 예측 ✅
+│   │   ├── controller    # PredictionController, HourlyPredictionController
+│   │   └── service       # PredictionService (KMA/KHOA 연동, 해안 25km 밖은 예측 불가 처리)
+│   ├── community         # 공유/커뮤니티 ✅ (게시글 = isPublic PointVisit)
+│   │   ├── controller    # CommunityController (/api/community)
+│   │   ├── entity        # PostLike, Comment
+│   │   └── service       # CommunityService, LikeService, CommentService
+│   └── diary             # 낚시 일지 (미착수 — 현재 point 도메인이 역할 대신 수행)
 ├── global
 │   ├── config            # SecurityConfig, JwtAuthenticationFilter, RedisConfig, JwtProperties ✅
 │   ├── exception         # GlobalExceptionHandler, ErrorResponse ✅
-│   ├── external          # WeatherClient, TideClient 인터페이스 + Stub 구현 ✅
+│   ├── external          # WeatherClient(KMA)/TideClient(KHOA) 실 연동 구현 ✅
 │   └── util              # JwtTokenProvider ✅
 ```
 
@@ -151,6 +159,13 @@ com.fishingapp
 | GET | /api/points/{id}/visits/{visitId} | Bearer 토큰 | 방문기록 상세 |
 | PUT | /api/points/{id}/visits/{visitId} | Bearer 토큰 | 방문기록 수정 |
 | DELETE | /api/points/{id}/visits/{visitId} | Bearer 토큰 | 방문기록 삭제 |
+| GET | /api/predictions | Bearer 토큰 | 위치 기반 조과 예측 (KMA/KHOA 연동) |
+| GET | /api/predictions/hourly | Bearer 토큰 | 시간대별 예측 |
+| GET | /api/community/posts | Bearer 토큰 | 커뮤니티 피드 목록 |
+| GET | /api/community/posts/{visitId} | Bearer 토큰 | 게시글 상세 |
+| POST/DELETE | /api/community/posts/{visitId}/likes | Bearer 토큰 | 좋아요 등록/취소 |
+| GET/POST | /api/community/posts/{visitId}/comments | Bearer 토큰 | 댓글 목록/작성 |
+| PUT/DELETE | /api/community/comments/{commentId} | Bearer 토큰 | 댓글 수정/삭제 |
 
 ## 보안 적용 내역
 
@@ -167,19 +182,35 @@ com.fishingapp
 PostgreSQL 및 Redis가 실행 중이어야 합니다.
 
 ```powershell
-# PATH 설정 (VS Code 터미널에서 새 세션일 때)
-$env:PATH = "$env:USERPROFILE\scoop\shims;$env:USERPROFILE\scoop\apps\git\current\cmd;$env:PATH"
-
-# PostgreSQL 시작 (실제 데이터 경로: scoop\persist)
-pg_ctl start -D "$env:USERPROFILE\scoop\persist\postgresql\data" -l "$env:USERPROFILE\scoop\persist\postgresql\data\postgresql.log"
+# PostgreSQL 시작 (실제 데이터 경로: C:\PostgreSQL\data)
+pg_ctl start -D "C:\PostgreSQL\data" -l "C:\PostgreSQL\data\postgresql.log"
 
 # PostgreSQL 상태 확인
-pg_ctl status -D "$env:USERPROFILE\scoop\persist\postgresql\data"
+pg_ctl status -D "C:\PostgreSQL\data"
 
-# Redis 시작
-Start-Process -FilePath "redis-server" -WindowStyle Hidden
+# Redis 시작 (실제 실행파일 경로: C:\Redis\redis-server.exe)
+Start-Process -FilePath "C:\Redis\redis-server.exe" -WindowStyle Hidden
 redis-cli ping  # PONG 확인
 
-# 빌드 및 실행
+# 빌드 및 실행 (KMA/KHOA API 키는 환경변수로 주입)
+$env:KMA_API_KEY = "..."
+$env:KHOA_API_KEY = "..."
 .\gradlew.bat bootRun
 ```
+
+## Android 에뮬레이터 테스트 (ADB)
+
+```powershell
+$adb = "C:\Android\sdk\platform-tools\adb.exe"
+
+# 정확한 탭 좌표가 필요할 때: UI 계층을 덤프해서 bounds를 직접 확인
+& $adb shell uiautomator dump /sdcard/ui.xml
+& $adb pull /sdcard/ui.xml C:\Android\ui.xml
+
+# 스크린샷
+& $adb shell screencap -p /sdcard/screen.png
+& $adb pull /sdcard/screen.png C:\Android\screen.png
+```
+
+**주의**: 스크린샷을 볼 때 표시되는 이미지 크기(예: 900x2000)와 실기기 좌표(1080x2400)가 다를 수 있다.
+반드시 `uiautomator dump`로 얻은 실제 `bounds` 값으로 탭 좌표를 계산할 것 — 표시된 이미지 좌표를 그대로 쓰면 엉뚱한 곳을 탭하게 된다.
