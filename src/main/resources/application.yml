@@ -1,6 +1,7 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/${DB_NAME:fishingapp}
+    # Neon 등 SSL 필수 호스트는 DB_PARAMS=?sslmode=require 로 지정
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:fishingapp}${DB_PARAMS:}
     username: ${DB_USERNAME:fishinguser}
     password: ${DB_PASSWORD:fishing1234}
     driver-class-name: org.postgresql.Driver
@@ -19,6 +20,8 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}        # 운영: 반드시 설정
+      ssl:
+        enabled: ${REDIS_SSL:false}       # Upstash 등 TLS 필수 호스트는 true
 
 server:
   port: 8080
