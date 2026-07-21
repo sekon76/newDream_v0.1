@@ -24,7 +24,7 @@ spring:
         enabled: ${REDIS_SSL:false}       # Upstash 등 TLS 필수 호스트는 true
 
 server:
-  port: 8080
+  port: ${PORT:8080}   # Render는 자체 PORT 환경변수로 리스닝 포트를 지정함
 
 jwt:
   secret: ${JWT_SECRET:please-change-this-secret-before-deploy-at-least-256bits}
