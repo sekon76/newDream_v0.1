@@ -1,3 +1,4 @@
+import 'package:fishing_app/features/point/view/map_picker_page.dart';
 import 'package:fishing_app/features/prediction/data/fish_species.dart';
 import 'package:fishing_app/features/prediction/data/prediction_model.dart';
 import 'package:fishing_app/features/prediction/provider/prediction_provider.dart';
@@ -35,7 +36,7 @@ class _PredictionPageState extends ConsumerState<PredictionPage> {
       return;
     }
     if (results.length == 1) {
-      _selectLocation(results.first);
+      _openMapForLocation(results.first);
       return;
     }
     showModalBottomSheet<void>(
@@ -46,10 +47,20 @@ class _PredictionPageState extends ConsumerState<PredictionPage> {
         itemBuilder: (ctx, i) => ListTile(
           leading: const Icon(Icons.place),
           title: Text(results[i].name),
-          onTap: () { Navigator.pop(ctx); _selectLocation(results[i]); },
+          onTap: () { Navigator.pop(ctx); _openMapForLocation(results[i]); },
         ),
       ),
     );
+  }
+
+  Future<void> _openMapForLocation(LocationState loc) async {
+    final result = await Navigator.of(context).push<MapPickerResult>(
+      MaterialPageRoute(builder: (_) => MapPickerPage(initialLat: loc.lat, initialLon: loc.lon)),
+    );
+    if (result == null || !mounted) return;
+    final name = await reverseGeocodeName(result.latitude, result.longitude, fallback: loc.name);
+    if (!mounted) return;
+    _selectLocation(LocationState(name: name, lat: result.latitude, lon: result.longitude));
   }
 
   void _selectLocation(LocationState loc) {
@@ -100,7 +111,7 @@ class _PredictionPageState extends ConsumerState<PredictionPage> {
           Expanded(
             child: asyncPrediction.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => _ErrorView(error: e, onRetry: _invalidateAll),
+              error: (_, __) => _ErrorView(onRetry: _invalidateAll),
               data: (result) => SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -412,7 +423,7 @@ class _ScoreCard extends StatelessWidget {
               Text(locationName ?? '현재 위치 기준',
                   style: const TextStyle(color: Colors.grey, fontSize: 12)),
             ]),
-            if (selectedFish != null && selectedFish!.isInSeason)
+            if (score != null && selectedFish != null && selectedFish!.isInSeason)
               const Padding(
                 padding: EdgeInsets.only(top: 6),
                 child: Text('🎯 지금이 시즌입니다!',
@@ -683,9 +694,8 @@ class _TideCard extends StatelessWidget {
 // ─── 에러 뷰 ────────────────────────────────────────────────────────────────
 
 class _ErrorView extends StatelessWidget {
-  final Object error;
   final VoidCallback onRetry;
-  const _ErrorView({required this.error, required this.onRetry});
+  const _ErrorView({required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -693,10 +703,7 @@ class _ErrorView extends StatelessWidget {
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         const Icon(Icons.error_outline, size: 48, color: Colors.red),
         const SizedBox(height: 12),
-        const Text('예측 데이터를 불러오지 못했습니다'),
-        const SizedBox(height: 8),
-        Text(error.toString(),
-            style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
+        const Text('예측하지 못했습니다.'),
         const SizedBox(height: 16),
         ElevatedButton(onPressed: onRetry, child: const Text('다시 시도')),
       ]),

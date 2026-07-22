@@ -83,10 +83,27 @@ Future<List<LocationState>> locationSearch(Ref ref, String query) async {
 
 String _buildPlaceName(Placemark? pm, String fallback) {
   if (pm == null) return fallback;
-  final parts = [pm.administrativeArea, pm.subLocality, pm.locality]
-      .where((s) => s != null && s.isNotEmpty)
-      .toList();
+  // 시/도 → 시/군/구 → 동/읍/면 → 도로명 → 건물번호 순으로 상세 주소 구성
+  final parts = [
+    pm.administrativeArea,
+    pm.locality,
+    pm.subLocality,
+    pm.thoroughfare,
+    pm.subThoroughfare,
+  ].where((s) => s != null && s.isNotEmpty).toSet().toList();
   return parts.isNotEmpty ? parts.join(' ') : fallback;
+}
+
+/// 위경도를 주소 문자열로 역지오코딩한다. 지도에서 직접 위치를 고른 뒤
+/// 표시용 이름을 만들 때 사용.
+Future<String> reverseGeocodeName(double lat, double lon, {String fallback = '선택한 위치'}) async {
+  try {
+    final placemarks = await placemarkFromCoordinates(lat, lon);
+    final pm = placemarks.isNotEmpty ? placemarks.first : null;
+    return _buildPlaceName(pm, fallback);
+  } catch (_) {
+    return fallback;
+  }
 }
 
 Future<(double, double)> _getCurrentLatLon() async {
