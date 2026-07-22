@@ -62,7 +62,7 @@ expiration: 86400000  # 24시간(ms)
 
 ---
 
-## 현재 프로젝트 상태 (2026-07-15 기준)
+## 현재 프로젝트 상태 (2026-07-22 기준)
 
 - [x] 프로젝트 구조 생성 (Gradle, Spring Boot)
 - [x] PostgreSQL 설치 및 DB/유저 생성
@@ -79,6 +79,10 @@ expiration: 86400000  # 24시간(ms)
 - [x] **global/external** — 날씨·조석 클라이언트 (KMA/KHOA 실 연동)
 - [x] Flutter 앱 — 인증/포인트/예측/일지/커뮤니티 화면 구현, Android 에뮬레이터 실기 테스트 완료
 - [x] **domain/diary** — 독립된 "낚시 일지" CRUD. 저장된 포인트 없이도 위치(검색/현재 위치/지도)를 직접 지정해 작성 가능하며, 포인트를 선택적으로 연결할 수도 있음. 날씨/조석은 방문기록과 동일하게 KMA/KHOA로 자동 기록. 공개 여부 없음(항상 개인용)
+- [x] **위치 선택사항화** — 커뮤니티 글쓰기·일지 작성 모두 위치를 지정하지 않아도 등록 가능. `FishingPoint.latitude/longitude`, `Diary.latitude/longitude` nullable로 변경. 위치 없으면 날씨/조석 조회 생략(NPE 방지 가드 적용)
+- [x] **FishingPoint.communityOnly 플래그** — 커뮤니티 글쓰기가 내부적으로 만드는 포인트(글을 담는 용도)는 "내 포인트" 목록과 일지의 포인트 선택 목록에서 제외. `/api/points` GET은 `communityOnly=false`인 것만 반환
+- [x] **조과예측 화면 개선** — 지역 검색 후 좌표를 바로 확정하지 않고 지도를 열어 정확한 위치를 다시 고를 수 있음. 주소 조합 순서 수정(시/도→시/군/구→동/읍/면→도로명→건물번호)으로 상세도 향상. 예측 불가 상태에서 어종 시즌 메시지 숨김. 에러 화면은 raw 예외 대신 "예측하지 못했습니다."로 단순화
+- [x] **배포 완료 (테스트용)** — Render(백엔드, Docker) + Neon(PostgreSQL) + Upstash(Redis) 조합으로 무료 배포. 서비스 URL: `https://playfishing-v01.onrender.com`. Flutter `api_client.dart`의 `_baseUrl`이 이 주소를 가리키도록 변경됨(에뮬레이터 테스트 시 `http://10.0.2.2:8080/api`로 되돌려야 함)
 - [ ] 수익 모델 — AdMob 광고, 프리미엄 구독 (미착수)
 
 ---
@@ -124,7 +128,7 @@ com.fishingapp
 │   ├── point             # 낚시 포인트 ✅
 │   │   ├── controller    # FishingPointController, PointVisitController
 │   │   ├── dto           # PointCreate/Update/Response, PointVisitCreate/Update/Response, TackleEntryRequest/Response
-│   │   ├── entity        # FishingPoint, PointVisit, TackleEntry, WeatherInfo(@Embeddable), TideInfo(@Embeddable)
+│   │   ├── entity        # FishingPoint(communityOnly 플래그 포함), PointVisit, TackleEntry, WeatherInfo(@Embeddable), TideInfo(@Embeddable)
 │   │   ├── repository    # FishingPointRepository, PointVisitRepository
 │   │   └── service       # FishingPointService (포인트 공개 시 커뮤니티 자동게시 포함), PointVisitService
 │   ├── prediction        # 조과 예측 ✅
@@ -182,6 +186,19 @@ com.fishingapp
 - 로그아웃 시 Redis 블랙리스트로 즉시 토큰 무효화
 - 인증/인가 실패 → JSON 에러 응답 (AuthenticationEntryPoint/AccessDeniedHandler)
 - 위조 토큰 시도 warn 로그 기록
+
+---
+
+## 배포 환경 (테스트용, 무료 티어)
+
+- **백엔드**: Render (Docker, 레포 루트의 `Dockerfile` 자동 인식) — `https://playfishing-v01.onrender.com`
+  - 무료 티어라 15분 미사용 시 슬립, 첫 요청은 콜드스타트로 지연될 수 있음
+- **DB**: Neon (PostgreSQL, connection pooler 사용, `sslmode=require&channel_binding=require`)
+- **Cache**: Upstash (Redis, TLS 필수 — `REDIS_SSL=true`)
+- Render 환경변수: `DB_HOST/PORT/NAME/USERNAME/PASSWORD/PARAMS`, `REDIS_HOST/PORT/PASSWORD/SSL`, `JWT_SECRET`, `JPA_DDL_AUTO=update`, `JPA_SHOW_SQL=false`, `KMA_API_KEY`, `KHOA_API_KEY`
+- `application.yml`은 `PORT` 환경변수도 지원함(Render가 컨테이너에 리스닝 포트를 지정하는 방식이라 필요)
+- **주의**: Hibernate `ddl-auto=update`는 기존 컬럼의 제약(NOT NULL 등)을 자동으로 완화하거나 새 컬럼에 값을 채워주지 않는다. 엔티티의 nullable 여부를 바꾸거나 컬럼을 추가할 때마다 로컬/Neon 양쪽에 수동 `ALTER TABLE`이 필요할 수 있음 (예: `fishing_points`/`diaries`의 lat/lon nullable화, `community_only` 컬럼 추가 시 실제로 이 문제를 겪었음)
+- Dockerfile/docker-compose.yml은 Oracle Cloud 같은 자체 호스팅용으로도 준비되어 있으나, 현재는 Render+Neon+Upstash 조합을 사용 중
 
 ---
 
