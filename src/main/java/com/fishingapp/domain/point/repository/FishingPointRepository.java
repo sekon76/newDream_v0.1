@@ -9,5 +9,6 @@ import java.util.Optional;
 
 public interface FishingPointRepository extends JpaRepository<FishingPoint, Long> {
     List<FishingPoint> findAllByUserOrderByCreatedAtDesc(User user);
+    List<FishingPoint> findAllByUserAndCommunityOnlyFalseOrderByCreatedAtDesc(User user);
     Optional<FishingPoint> findByIdAndUser(Long id, User user);
 }

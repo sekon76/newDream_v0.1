@@ -25,12 +25,11 @@ public class DiaryCreateRequest {
     // 저장된 포인트와 연결하고 싶을 때만 입력 (선택)
     private Long pointId;
 
-    @NotNull(message = "위도를 입력해주세요.")
+    // 위치 검색도 선택 사항이라 필수 아님
     @DecimalMin(value = "-90.0", message = "위도는 -90 ~ 90 사이여야 합니다.")
     @DecimalMax(value = "90.0", message = "위도는 -90 ~ 90 사이여야 합니다.")
     private Double latitude;
 
-    @NotNull(message = "경도를 입력해주세요.")
     @DecimalMin(value = "-180.0", message = "경도는 -180 ~ 180 사이여야 합니다.")
     @DecimalMax(value = "180.0", message = "경도는 -180 ~ 180 사이여야 합니다.")
     private Double longitude;

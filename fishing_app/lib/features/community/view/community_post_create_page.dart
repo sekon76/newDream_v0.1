@@ -66,6 +66,14 @@ class _CommunityPostCreatePageState extends ConsumerState<CommunityPostCreatePag
     );
   }
 
+  void _clearLocation() {
+    setState(() {
+      _locationCtrl.clear();
+      _lat = null;
+      _lon = null;
+    });
+  }
+
   void _applyLocation(String name, double lat, double lon) {
     setState(() {
       _locationCtrl.text = name;
@@ -117,19 +125,14 @@ class _CommunityPostCreatePageState extends ConsumerState<CommunityPostCreatePag
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_lat == null || _lon == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('위치를 검색하거나 지도에서 선택해주세요.')),
-      );
-      return;
-    }
 
+    final locationName = _locationCtrl.text.trim();
     final ok = await ref.read(pointActionsProvider.notifier).createCommunityPost(
           title: _titleCtrl.text.trim(),
           content: _contentCtrl.text.trim(),
-          locationName: _locationCtrl.text.trim(),
-          latitude: _lat!,
-          longitude: _lon!,
+          locationName: locationName.isEmpty ? null : locationName,
+          latitude: _lat,
+          longitude: _lon,
         );
     if (!mounted) return;
     if (ok) {
@@ -186,7 +189,7 @@ class _CommunityPostCreatePageState extends ConsumerState<CommunityPostCreatePag
                 TextFormField(
                   controller: _locationCtrl,
                   decoration: InputDecoration(
-                    labelText: '지역(포인트) 검색',
+                    labelText: '지역(포인트) 검색 (선택)',
                     hintText: '예: 여수, 통영, 거제',
                     border: const OutlineInputBorder(),
                     suffixIcon: _isLocating
@@ -194,7 +197,13 @@ class _CommunityPostCreatePageState extends ConsumerState<CommunityPostCreatePag
                             padding: EdgeInsets.all(12),
                             child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
                           )
-                        : IconButton(icon: const Icon(Icons.search), onPressed: _searchLocation),
+                        : Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(icon: const Icon(Icons.clear), onPressed: _clearLocation),
+                              IconButton(icon: const Icon(Icons.search), onPressed: _searchLocation),
+                            ],
+                          ),
                   ),
                   onFieldSubmitted: (_) => _searchLocation(),
                 ),

@@ -255,12 +255,6 @@ class _DiaryCreatePageState extends ConsumerState<DiaryCreatePage> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    if (!_isEditing && (_lat == null || _lon == null)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('포인트를 선택하거나 위치를 지정해주세요.')),
-      );
-      return;
-    }
 
     final catches = <CatchRecordData>[];
     for (final row in _catchRows) {
@@ -307,8 +301,8 @@ class _DiaryCreatePageState extends ConsumerState<DiaryCreatePage> {
             content: _contentCtrl.text.trim().isEmpty ? null : _contentCtrl.text.trim(),
             memo: _memoCtrl.text.trim().isEmpty ? null : _memoCtrl.text.trim(),
             pointId: _pointId,
-            latitude: _lat!,
-            longitude: _lon!,
+            latitude: _lat,
+            longitude: _lon,
             address: _addressCtrl.text.trim().isEmpty ? null : _addressCtrl.text.trim(),
             tackles: tackles,
             catches: catches,
@@ -369,7 +363,7 @@ class _DiaryCreatePageState extends ConsumerState<DiaryCreatePage> {
                 ),
                 if (!_isEditing) ...[
                   const SizedBox(height: 24),
-                  Text('위치', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                  Text('위치 (선택)', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   if (_pointId != null)
                     Chip(

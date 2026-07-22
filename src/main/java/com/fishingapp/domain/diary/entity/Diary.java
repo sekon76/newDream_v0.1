@@ -50,10 +50,9 @@ public class Diary {
     @Column(length = 500)
     private String memo;
 
-    @Column(nullable = false)
+    // 위치 검색도 선택 사항이라 nullable
     private Double latitude;
 
-    @Column(nullable = false)
     private Double longitude;
 
     private String address;

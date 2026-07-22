@@ -6,6 +6,8 @@ import com.fishingapp.domain.diary.entity.DiaryCatchRecord;
 import com.fishingapp.domain.diary.entity.DiaryTackleEntry;
 import com.fishingapp.domain.diary.repository.DiaryRepository;
 import com.fishingapp.domain.point.entity.FishingPoint;
+import com.fishingapp.domain.point.entity.TideInfo;
+import com.fishingapp.domain.point.entity.WeatherInfo;
 import com.fishingapp.domain.point.repository.FishingPointRepository;
 import com.fishingapp.domain.user.entity.User;
 import com.fishingapp.global.external.TideClient;
@@ -31,6 +33,13 @@ public class DiaryService {
         FishingPoint point = request.getPointId() != null
                 ? getOwnedPoint(user, request.getPointId())
                 : null;
+        boolean hasLocation = request.getLatitude() != null && request.getLongitude() != null;
+        WeatherInfo weather = hasLocation
+                ? weatherClient.fetch(request.getLatitude(), request.getLongitude(), request.getVisitDate())
+                : null;
+        TideInfo tide = hasLocation
+                ? tideClient.fetch(request.getLatitude(), request.getLongitude(), request.getVisitDate())
+                : null;
 
         Diary diary = Diary.builder()
                 .user(user)
@@ -42,8 +51,8 @@ public class DiaryService {
                 .latitude(request.getLatitude())
                 .longitude(request.getLongitude())
                 .address(request.getAddress())
-                .weather(weatherClient.fetch(request.getLatitude(), request.getLongitude(), request.getVisitDate()))
-                .tide(tideClient.fetch(request.getLatitude(), request.getLongitude(), request.getVisitDate()))
+                .weather(weather)
+                .tide(tide)
                 .build();
 
         addTackles(diary, request.getTackles());

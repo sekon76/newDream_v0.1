@@ -28,11 +28,12 @@ class PointRepository {
   Future<FishingPoint> createPoint({
     required String name,
     String? description,
-    required double latitude,
-    required double longitude,
+    double? latitude,
+    double? longitude,
     String? address,
     String? fishType,
     bool isPublic = false,
+    bool communityOnly = false,
   }) async {
     final res = await _dio.post('/points', data: {
       'name': name,
@@ -42,6 +43,7 @@ class PointRepository {
       'address': address,
       'fishType': fishType,
       'isPublic': isPublic,
+      'communityOnly': communityOnly,
     });
     return FishingPoint.fromJson(res.data as Map<String, dynamic>);
   }

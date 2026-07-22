@@ -34,6 +34,7 @@ public class FishingPointService {
                 .address(request.getAddress())
                 .fishType(request.getFishType())
                 .isPublic(request.isPublic())
+                .communityOnly(request.isCommunityOnly())
                 .build();
 
         fishingPointRepository.save(point);
@@ -43,7 +44,7 @@ public class FishingPointService {
     }
 
     public List<PointResponse> findAll(User user) {
-        return fishingPointRepository.findAllByUserOrderByCreatedAtDesc(user)
+        return fishingPointRepository.findAllByUserAndCommunityOnlyFalseOrderByCreatedAtDesc(user)
                 .stream()
                 .map(PointResponse::new)
                 .toList();

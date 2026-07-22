@@ -8,6 +8,8 @@ import com.fishingapp.domain.point.entity.TackleEntry;
 import com.fishingapp.domain.point.repository.FishingPointRepository;
 import com.fishingapp.domain.point.repository.PointVisitRepository;
 import com.fishingapp.domain.user.entity.User;
+import com.fishingapp.domain.point.entity.WeatherInfo;
+import com.fishingapp.domain.point.entity.TideInfo;
 import com.fishingapp.global.external.TideClient;
 import com.fishingapp.global.external.WeatherClient;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,13 @@ public class PointVisitService {
     @Transactional
     public PointVisitResponse create(User user, Long pointId, PointVisitCreateRequest request) {
         FishingPoint point = getOwnedPoint(user, pointId);
+        boolean hasLocation = point.getLatitude() != null && point.getLongitude() != null;
+        WeatherInfo weather = hasLocation
+                ? weatherClient.fetch(point.getLatitude(), point.getLongitude(), request.getVisitDate())
+                : null;
+        TideInfo tide = hasLocation
+                ? tideClient.fetch(point.getLatitude(), point.getLongitude(), request.getVisitDate())
+                : null;
 
         PointVisit visit = PointVisit.builder()
                 .fishingPoint(point)
@@ -37,8 +46,8 @@ public class PointVisitService {
                 .title(request.getTitle())
                 .content(request.getContent())
                 .isPublic(request.isPublic())
-                .weather(weatherClient.fetch(point.getLatitude(), point.getLongitude(), request.getVisitDate()))
-                .tide(tideClient.fetch(point.getLatitude(), point.getLongitude(), request.getVisitDate()))
+                .weather(weather)
+                .tide(tide)
                 .build();
 
         if (request.getTackles() != null) {

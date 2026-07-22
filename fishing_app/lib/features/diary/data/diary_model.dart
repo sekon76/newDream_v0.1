@@ -9,8 +9,8 @@ class Diary {
   final String? title;
   final String? content;
   final String? memo;
-  final double latitude;
-  final double longitude;
+  final double? latitude;
+  final double? longitude;
   final String? address;
   final WeatherData? weather;
   final TideData? tide;
@@ -26,8 +26,8 @@ class Diary {
     this.title,
     this.content,
     this.memo,
-    required this.latitude,
-    required this.longitude,
+    this.latitude,
+    this.longitude,
     this.address,
     this.weather,
     this.tide,
@@ -44,8 +44,8 @@ class Diary {
         title: json['title'] as String?,
         content: json['content'] as String?,
         memo: json['memo'] as String?,
-        latitude: (json['latitude'] as num).toDouble(),
-        longitude: (json['longitude'] as num).toDouble(),
+        latitude: (json['latitude'] as num?)?.toDouble(),
+        longitude: (json['longitude'] as num?)?.toDouble(),
         address: json['address'] as String?,
         weather: json['weather'] != null ? WeatherData.fromJson(json['weather'] as Map<String, dynamic>) : null,
         tide: json['tide'] != null ? TideData.fromJson(json['tide'] as Map<String, dynamic>) : null,
