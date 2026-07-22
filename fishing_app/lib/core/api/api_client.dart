@@ -5,8 +5,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'api_client.g.dart';
 
-// 에뮬레이터에서 localhost 접근 주소
-const _baseUrl = 'http://10.0.2.2:8080/api';
+// 배포된 백엔드(Render) 주소 — 에뮬레이터 로컬 테스트로 되돌리려면 'http://10.0.2.2:8080/api'로 변경
+const _baseUrl = 'https://playfishing-v01.onrender.com/api';
 
 @riverpod
 Dio dio(Ref ref) {
