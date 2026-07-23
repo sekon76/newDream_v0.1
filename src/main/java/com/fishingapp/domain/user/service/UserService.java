@@ -2,6 +2,7 @@ package com.fishingapp.domain.user.service;
 
 import com.fishingapp.domain.user.dto.AuthResponse;
 import com.fishingapp.domain.user.dto.LoginRequest;
+import com.fishingapp.domain.user.dto.PasswordChangeRequest;
 import com.fishingapp.domain.user.dto.SignUpRequest;
 import com.fishingapp.domain.user.entity.User;
 import com.fishingapp.domain.user.entity.UserRole;
@@ -65,6 +66,17 @@ public class UserService implements UserDetailsService {
         if (remaining > 0) {
             redisTemplate.opsForValue().set("blacklist:" + token, "logout", remaining, TimeUnit.MILLISECONDS);
         }
+    }
+
+    @Transactional
+    public void changePassword(User user, PasswordChangeRequest request) {
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("현재 비밀번호가 올바르지 않습니다.");
+        }
+        // @AuthenticationPrincipal로 들어온 User는 필터 단계에서 로딩된 detached 상태라
+        // 이 트랜잭션의 영속성 컨텍스트 dirty checking 대상이 아니므로 명시적으로 저장한다.
+        user.changePassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
     }
 
     @Override

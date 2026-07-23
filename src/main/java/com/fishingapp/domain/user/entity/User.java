@@ -69,4 +69,8 @@ public class User implements UserDetails {
     public String getUsername() {
         return email;
     }
+
+    public void changePassword(String encodedPassword) {
+        this.password = encodedPassword;
+    }
 }

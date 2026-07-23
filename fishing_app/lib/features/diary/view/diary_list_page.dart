@@ -5,6 +5,7 @@ import 'package:fishing_app/features/diary/view/diary_create_page.dart';
 import 'package:fishing_app/features/diary/view/diary_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class DiaryListPage extends ConsumerWidget {
   const DiaryListPage({super.key});
@@ -20,6 +21,10 @@ class DiaryListPage extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () => ref.invalidate(diariesProvider),
+          ),
+          IconButton(
+            icon: const Icon(Icons.person_outline),
+            onPressed: () => context.push('/profile'),
           ),
         ],
       ),

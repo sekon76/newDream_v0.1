@@ -23,7 +23,7 @@ final diariesProvider = AutoDisposeFutureProvider<List<Diary>>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef DiariesRef = AutoDisposeFutureProviderRef<List<Diary>>;
-String _$diaryActionsHash() => r'b4bdf6ccc4a3a1fc45c622f295ff75a00cc95343';
+String _$diaryActionsHash() => r'b498026ceae964aa679ba7dd38c9adc65294cb47';
 
 /// See also [DiaryActions].
 @ProviderFor(DiaryActions)

@@ -5,6 +5,7 @@ import 'package:fishing_app/features/community/view/community_post_create_page.d
 import 'package:fishing_app/features/community/view/community_post_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 String weatherIcon(String? c) => switch (c) {
       '맑음' => '☀️',
@@ -60,6 +61,10 @@ class _CommunityPageState extends ConsumerState<CommunityPage> {
         title: const Text('커뮤니티'),
         actions: [
           IconButton(icon: const Icon(Icons.refresh), onPressed: () => ref.invalidate(communityFeedProvider)),
+          IconButton(
+            icon: const Icon(Icons.person_outline),
+            onPressed: () => context.push('/profile'),
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(

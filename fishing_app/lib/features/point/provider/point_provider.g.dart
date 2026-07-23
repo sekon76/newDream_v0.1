@@ -282,7 +282,7 @@ class _PointVisitsProviderElement
   int get pointId => (origin as PointVisitsProvider).pointId;
 }
 
-String _$pointActionsHash() => r'8e181ac5998e717b692f72321aa410155e160091';
+String _$pointActionsHash() => r'e74ed100ecae48fe23b2a18d37fb39ff3c6f7586';
 
 /// See also [PointActions].
 @ProviderFor(PointActions)

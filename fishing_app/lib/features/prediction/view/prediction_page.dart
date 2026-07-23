@@ -2,8 +2,10 @@ import 'package:fishing_app/features/point/view/map_picker_page.dart';
 import 'package:fishing_app/features/prediction/data/fish_species.dart';
 import 'package:fishing_app/features/prediction/data/prediction_model.dart';
 import 'package:fishing_app/features/prediction/provider/prediction_provider.dart';
+import 'package:fishing_app/features/profile/provider/profile_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class PredictionPage extends ConsumerStatefulWidget {
   const PredictionPage({super.key});
@@ -15,6 +17,43 @@ class PredictionPage extends ConsumerStatefulWidget {
 class _PredictionPageState extends ConsumerState<PredictionPage> {
   final _locationController = TextEditingController();
   bool _isSearching = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _applyDefaultPreference();
+  }
+
+  // 로그인 후 조과예측 화면 첫 진입 시, 등록된 기본 선호 지역/어종이 있으면 자동 적용한다.
+  // 이미 사용자가 위치를 선택한 상태라면 덮어쓰지 않는다.
+  Future<void> _applyDefaultPreference() async {
+    if (ref.read(selectedLocationProvider) != null) return;
+    try {
+      final defaultRegion = await ref.read(defaultPreferredRegionProvider.future);
+      if (defaultRegion == null || !mounted) return;
+      if (ref.read(selectedLocationProvider) != null) return;
+
+      _selectLocation(LocationState(name: defaultRegion.name, lat: defaultRegion.latitude, lon: defaultRegion.longitude));
+
+      String? defaultSpeciesName;
+      for (final species in defaultRegion.species) {
+        if (species.isDefault) {
+          defaultSpeciesName = species.speciesName;
+          break;
+        }
+      }
+      if (defaultSpeciesName != null) {
+        for (final fish in fishSpeciesList) {
+          if (fish.name == defaultSpeciesName) {
+            ref.read(selectedFishProvider.notifier).select(fish);
+            break;
+          }
+        }
+      }
+    } catch (_) {
+      // 기본값 자동 적용은 부가 기능이라 실패해도 예측 화면 자체는 정상 동작해야 한다.
+    }
+  }
 
   @override
   void dispose() {
@@ -90,6 +129,10 @@ class _PredictionPageState extends ConsumerState<PredictionPage> {
         title: const Text('조과 예측'),
         actions: [
           IconButton(icon: const Icon(Icons.refresh), onPressed: _invalidateAll),
+          IconButton(
+            icon: const Icon(Icons.person_outline),
+            onPressed: () => context.push('/profile'),
+          ),
         ],
       ),
       body: Column(

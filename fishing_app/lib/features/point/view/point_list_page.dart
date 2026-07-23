@@ -20,6 +20,10 @@ class PointListPage extends ConsumerWidget {
             icon: const Icon(Icons.refresh),
             onPressed: () => ref.invalidate(pointsProvider),
           ),
+          IconButton(
+            icon: const Icon(Icons.person_outline),
+            onPressed: () => context.push('/profile'),
+          ),
         ],
       ),
       body: RefreshIndicator(

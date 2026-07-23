@@ -9,6 +9,7 @@ import 'package:fishing_app/features/point/view/point_detail_page.dart';
 import 'package:fishing_app/features/point/view/point_list_page.dart';
 import 'package:fishing_app/features/point/view/visit_create_page.dart';
 import 'package:fishing_app/features/prediction/view/prediction_page.dart';
+import 'package:fishing_app/features/profile/view/profile_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -34,6 +35,7 @@ GoRouter appRouter(Ref ref) {
       GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
       GoRoute(path: '/signup', builder: (context, state) => const SignupPage()),
       GoRoute(path: '/points/create', builder: (context, state) => const PointCreatePage()),
+      GoRoute(path: '/profile', builder: (context, state) => const ProfilePage()),
       GoRoute(
         path: '/points/:id',
         builder: (context, state) => PointDetailPage(pointId: int.parse(state.pathParameters['id']!)),
