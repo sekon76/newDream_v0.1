@@ -1,6 +1,5 @@
 import 'package:fishing_app/core/api/api_exception.dart';
 import 'package:fishing_app/features/point/view/map_picker_page.dart';
-import 'package:fishing_app/features/prediction/data/fish_species.dart';
 import 'package:fishing_app/features/prediction/provider/prediction_provider.dart';
 import 'package:fishing_app/features/profile/data/profile_model.dart';
 import 'package:fishing_app/features/profile/provider/profile_provider.dart';
@@ -17,8 +16,12 @@ class PreferredRegionCreatePage extends ConsumerStatefulWidget {
 }
 
 class _SpeciesRow {
-  String speciesName;
-  _SpeciesRow(this.speciesName);
+  final TextEditingController controller;
+  _SpeciesRow(String speciesName) : controller = TextEditingController(text: speciesName);
+
+  String get speciesName => controller.text.trim();
+
+  void dispose() => controller.dispose();
 }
 
 class _PreferredRegionCreatePageState extends ConsumerState<PreferredRegionCreatePage> {
@@ -56,6 +59,9 @@ class _PreferredRegionCreatePageState extends ConsumerState<PreferredRegionCreat
   void dispose() {
     _nameCtrl.dispose();
     _addressCtrl.dispose();
+    for (final row in _speciesRows) {
+      row.dispose();
+    }
     super.dispose();
   }
 
@@ -146,7 +152,7 @@ class _PreferredRegionCreatePageState extends ConsumerState<PreferredRegionCreat
 
   void _addSpeciesRow() {
     setState(() {
-      _speciesRows.add(_SpeciesRow(fishSpeciesList.first.name));
+      _speciesRows.add(_SpeciesRow(''));
       // 처음 추가하는 어종은 자동으로 기본값이 되게 한다.
       _defaultSpeciesIndex ??= 0;
     });
@@ -154,7 +160,7 @@ class _PreferredRegionCreatePageState extends ConsumerState<PreferredRegionCreat
 
   void _removeSpeciesRow(int index) {
     setState(() {
-      _speciesRows.removeAt(index);
+      _speciesRows.removeAt(index).dispose();
       if (_defaultSpeciesIndex == null) return;
       if (_defaultSpeciesIndex == index) {
         _defaultSpeciesIndex = _speciesRows.isEmpty ? null : 0;
@@ -301,13 +307,10 @@ class _PreferredRegionCreatePageState extends ConsumerState<PreferredRegionCreat
                             onChanged: (v) => setState(() => _defaultSpeciesIndex = v),
                           ),
                           Expanded(
-                            child: DropdownButtonFormField<String>(
-                              initialValue: row.speciesName,
-                              decoration: const InputDecoration(border: InputBorder.none),
-                              items: fishSpeciesList
-                                  .map((f) => DropdownMenuItem(value: f.name, child: Text('${f.emoji} ${f.name}')))
-                                  .toList(),
-                              onChanged: (v) => setState(() => row.speciesName = v ?? row.speciesName),
+                            child: TextFormField(
+                              controller: row.controller,
+                              decoration: const InputDecoration(border: InputBorder.none, hintText: '어종 이름'),
+                              validator: (v) => (v == null || v.trim().isEmpty) ? '어종 이름을 입력하세요.' : null,
                             ),
                           ),
                           IconButton(
