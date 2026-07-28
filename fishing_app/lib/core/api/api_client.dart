@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fishing_app/core/storage/secure_storage.dart';
+import 'package:fishing_app/features/auth/provider/auth_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'api_client.g.dart';
@@ -26,7 +27,13 @@ Dio dio(Ref ref) {
       }
       handler.next(options);
     },
-    onError: (error, handler) {
+    onError: (error, handler) async {
+      final hadToken = error.requestOptions.headers['Authorization'] != null;
+      if (hadToken && error.response?.statusCode == 401) {
+        // 토큰이 만료/무효화된 상태 — 저장된 토큰을 지우고 로그인 화면으로 돌려보낸다.
+        await storage.deleteToken();
+        ref.invalidate(authStateProvider);
+      }
       handler.next(error);
     },
   ));
