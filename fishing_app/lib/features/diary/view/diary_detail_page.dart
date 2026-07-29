@@ -1,4 +1,5 @@
 import 'package:fishing_app/core/api/api_exception.dart';
+import 'package:fishing_app/core/widgets/location_map_preview.dart';
 import 'package:fishing_app/features/diary/data/diary_model.dart';
 import 'package:fishing_app/features/diary/provider/diary_provider.dart';
 import 'package:fishing_app/features/diary/view/diary_create_page.dart';
@@ -80,6 +81,10 @@ class DiaryDetailPage extends ConsumerWidget {
               const SizedBox(width: 4),
               Expanded(child: Text(diary.address!, style: const TextStyle(color: Colors.grey))),
             ]),
+          ],
+          if (diary.latitude != null && diary.longitude != null) ...[
+            const SizedBox(height: 12),
+            LocationMapPreview(latitude: diary.latitude!, longitude: diary.longitude!),
           ],
           if (diary.content != null && diary.content!.isNotEmpty) ...[
             const SizedBox(height: 16),

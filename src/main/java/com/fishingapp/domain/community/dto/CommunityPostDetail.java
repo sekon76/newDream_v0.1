@@ -17,6 +17,8 @@ public class CommunityPostDetail {
     private final String authorNickname;
     private final String pointName;
     private final String pointAddress;
+    private final Double pointLatitude;
+    private final Double pointLongitude;
     private final LocalDate visitDate;
     private final String title;
     private final String content;
@@ -35,6 +37,8 @@ public class CommunityPostDetail {
         this.authorNickname = visit.getFishingPoint().getUser().getNickname();
         this.pointName = visit.getFishingPoint().getName();
         this.pointAddress = visit.getFishingPoint().getAddress();
+        this.pointLatitude = visit.getFishingPoint().getLatitude();
+        this.pointLongitude = visit.getFishingPoint().getLongitude();
         this.visitDate = visit.getVisitDate();
         this.title = visit.getTitle();
         this.content = visit.getContent();

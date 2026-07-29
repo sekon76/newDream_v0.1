@@ -19,10 +19,6 @@ class DiaryListPage extends ConsumerWidget {
         title: const Text('낚시 일지'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => ref.invalidate(diariesProvider),
-          ),
-          IconButton(
             icon: const Icon(Icons.person_outline),
             onPressed: () => context.push('/profile'),
           ),

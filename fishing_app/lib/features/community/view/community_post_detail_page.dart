@@ -1,4 +1,5 @@
 import 'package:fishing_app/core/api/api_exception.dart';
+import 'package:fishing_app/core/widgets/location_map_preview.dart';
 import 'package:fishing_app/features/community/data/community_model.dart';
 import 'package:fishing_app/features/community/provider/community_provider.dart';
 import 'package:fishing_app/features/community/view/community_page.dart';
@@ -207,6 +208,10 @@ class _PostDetailBody extends ConsumerWidget {
               ),
             ),
           ]),
+        ],
+        if (post.pointLatitude != null && post.pointLongitude != null) ...[
+          const SizedBox(height: 8),
+          LocationMapPreview(latitude: post.pointLatitude!, longitude: post.pointLongitude!),
         ],
         if (post.title != null && post.title!.isNotEmpty) ...[
           const SizedBox(height: 12),

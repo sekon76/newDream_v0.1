@@ -1,6 +1,7 @@
 import 'package:fishing_app/features/prediction/data/fish_species.dart';
 import 'package:fishing_app/features/prediction/data/prediction_model.dart';
 import 'package:fishing_app/features/prediction/data/prediction_repository.dart';
+import 'package:fishing_app/features/prediction/data/recent_location_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -62,6 +63,23 @@ Future<PredictionResult> prediction(Ref ref) async {
   return ref.watch(predictionRepositoryProvider).predict(lat, lon, date: dateStr);
 }
 
+
+@riverpod
+RecentLocationRepository recentLocationRepository(Ref ref) => RecentLocationRepository();
+
+// 최근 검색해서 선택한 위치(최대 5개, 로컬 저장). 조과예측 화면의 빠른 선택 칩에 사용된다.
+@riverpod
+class RecentLocations extends _$RecentLocations {
+  @override
+  Future<List<LocationState>> build() {
+    return ref.watch(recentLocationRepositoryProvider).load();
+  }
+
+  Future<void> add(LocationState location) async {
+    await ref.read(recentLocationRepositoryProvider).add(location);
+    ref.invalidateSelf();
+  }
+}
 
 @riverpod
 Future<List<LocationState>> locationSearch(Ref ref, String query) async {

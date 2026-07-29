@@ -60,7 +60,6 @@ class _CommunityPageState extends ConsumerState<CommunityPage> {
       appBar: AppBar(
         title: const Text('커뮤니티'),
         actions: [
-          IconButton(icon: const Icon(Icons.refresh), onPressed: () => ref.invalidate(communityFeedProvider)),
           IconButton(
             icon: const Icon(Icons.person_outline),
             onPressed: () => context.push('/profile'),

@@ -23,6 +23,26 @@ final predictionProvider = AutoDisposeFutureProvider<PredictionResult>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef PredictionRef = AutoDisposeFutureProviderRef<PredictionResult>;
+String _$recentLocationRepositoryHash() =>
+    r'fd7de077142abfb42341c8b7202b265b49f49d87';
+
+/// See also [recentLocationRepository].
+@ProviderFor(recentLocationRepository)
+final recentLocationRepositoryProvider =
+    AutoDisposeProvider<RecentLocationRepository>.internal(
+      recentLocationRepository,
+      name: r'recentLocationRepositoryProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$recentLocationRepositoryHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef RecentLocationRepositoryRef =
+    AutoDisposeProviderRef<RecentLocationRepository>;
 String _$locationSearchHash() => r'b19e9c68aa7828bb41ad6209d77266aa748c118d';
 
 /// Copied from Dart SDK
@@ -213,5 +233,24 @@ final selectedFishProvider =
     );
 
 typedef _$SelectedFish = AutoDisposeNotifier<FishSpecies?>;
+String _$recentLocationsHash() => r'dd6e4ede0fdf052e71eb195fc5c8186a5d6217c6';
+
+/// See also [RecentLocations].
+@ProviderFor(RecentLocations)
+final recentLocationsProvider =
+    AutoDisposeAsyncNotifierProvider<
+      RecentLocations,
+      List<LocationState>
+    >.internal(
+      RecentLocations.new,
+      name: r'recentLocationsProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$recentLocationsHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$RecentLocations = AutoDisposeAsyncNotifier<List<LocationState>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

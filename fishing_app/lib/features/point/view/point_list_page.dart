@@ -17,10 +17,6 @@ class PointListPage extends ConsumerWidget {
         title: const Text('내 포인트'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => ref.invalidate(pointsProvider),
-          ),
-          IconButton(
             icon: const Icon(Icons.person_outline),
             onPressed: () => context.push('/profile'),
           ),

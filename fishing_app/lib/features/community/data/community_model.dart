@@ -76,6 +76,8 @@ class CommunityPostDetail {
   final String authorNickname;
   final String? pointName;
   final String? pointAddress;
+  final double? pointLatitude;
+  final double? pointLongitude;
   final DateTime visitDate;
   final String? title;
   final String? content;
@@ -92,6 +94,8 @@ class CommunityPostDetail {
     required this.authorNickname,
     this.pointName,
     this.pointAddress,
+    this.pointLatitude,
+    this.pointLongitude,
     required this.visitDate,
     this.title,
     this.content,
@@ -109,6 +113,8 @@ class CommunityPostDetail {
         authorNickname: json['authorNickname'] as String,
         pointName: json['pointName'] as String?,
         pointAddress: json['pointAddress'] as String?,
+        pointLatitude: (json['pointLatitude'] as num?)?.toDouble(),
+        pointLongitude: (json['pointLongitude'] as num?)?.toDouble(),
         visitDate: DateTime.parse(json['visitDate'] as String),
         title: json['title'] as String?,
         content: json['content'] as String?,

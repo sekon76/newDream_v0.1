@@ -99,7 +99,14 @@ class _PredictionPageState extends ConsumerState<PredictionPage> {
     if (result == null || !mounted) return;
     final name = await reverseGeocodeName(result.latitude, result.longitude, fallback: loc.name);
     if (!mounted) return;
-    _selectLocation(LocationState(name: name, lat: result.latitude, lon: result.longitude));
+    final confirmed = LocationState(name: name, lat: result.latitude, lon: result.longitude);
+    _selectLocation(confirmed);
+    ref.read(recentLocationsProvider.notifier).add(confirmed);
+  }
+
+  void _selectRecentLocation(LocationState loc) {
+    _selectLocation(loc);
+    ref.read(recentLocationsProvider.notifier).add(loc);
   }
 
   void _selectLocation(LocationState loc) {
@@ -123,12 +130,12 @@ class _PredictionPageState extends ConsumerState<PredictionPage> {
     final selected = ref.watch(selectedLocationProvider);
     final selectedFish = ref.watch(selectedFishProvider);
     final asyncPrediction = ref.watch(predictionProvider);
+    final recentLocations = ref.watch(recentLocationsProvider).valueOrNull ?? [];
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('조과 예측'),
         actions: [
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _invalidateAll),
           IconButton(
             icon: const Icon(Icons.person_outline),
             onPressed: () => context.push('/profile'),
@@ -142,8 +149,10 @@ class _PredictionPageState extends ConsumerState<PredictionPage> {
             controller: _locationController,
             isSearching: _isSearching,
             hasSelected: selected != null,
+            recentLocations: recentLocations,
             onSearch: _searchLocation,
             onReset: _resetLocation,
+            onSelectRecent: _selectRecentLocation,
           ),
           // 날짜 탭
           _DateTabBar(onDateChanged: _invalidateAll),
@@ -203,15 +212,19 @@ class _LocationSearchBar extends StatelessWidget {
   final TextEditingController controller;
   final bool isSearching;
   final bool hasSelected;
+  final List<LocationState> recentLocations;
   final ValueChanged<String> onSearch;
   final VoidCallback onReset;
+  final ValueChanged<LocationState> onSelectRecent;
 
   const _LocationSearchBar({
     required this.controller,
     required this.isSearching,
     required this.hasSelected,
+    required this.recentLocations,
     required this.onSearch,
     required this.onReset,
+    required this.onSelectRecent,
   });
 
   @override
@@ -242,20 +255,36 @@ class _LocationSearchBar extends StatelessWidget {
         ),
         SizedBox(
           height: 36,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            itemCount: _presetLocations.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 6),
-            itemBuilder: (context, i) {
-              final (label, query) = _presetLocations[i];
-              return ActionChip(
-                label: Text(label, style: const TextStyle(fontSize: 12)),
-                padding: EdgeInsets.zero,
-                onPressed: () => onSearch(query),
-              );
-            },
-          ),
+          child: recentLocations.isNotEmpty
+              ? ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  itemCount: recentLocations.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 6),
+                  itemBuilder: (context, i) {
+                    final loc = recentLocations[i];
+                    return ActionChip(
+                      avatar: const Icon(Icons.history, size: 14),
+                      label: Text(loc.name, style: const TextStyle(fontSize: 12)),
+                      padding: EdgeInsets.zero,
+                      onPressed: () => onSelectRecent(loc),
+                    );
+                  },
+                )
+              : ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  itemCount: _presetLocations.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 6),
+                  itemBuilder: (context, i) {
+                    final (label, query) = _presetLocations[i];
+                    return ActionChip(
+                      label: Text(label, style: const TextStyle(fontSize: 12)),
+                      padding: EdgeInsets.zero,
+                      onPressed: () => onSearch(query),
+                    );
+                  },
+                ),
         ),
         const SizedBox(height: 4),
       ],

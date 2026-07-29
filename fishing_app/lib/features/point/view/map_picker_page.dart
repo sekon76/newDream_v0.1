@@ -19,11 +19,18 @@ class MapPickerPage extends StatefulWidget {
 class _MapPickerPageState extends State<MapPickerPage> {
   NaverMapController? _controller;
   late NLatLng _center;
+  NMapType _mapType = NMapType.basic;
 
   @override
   void initState() {
     super.initState();
     _center = NLatLng(widget.initialLat ?? 37.5665, widget.initialLon ?? 126.9780);
+  }
+
+  void _toggleMapType() {
+    setState(() {
+      _mapType = _mapType == NMapType.basic ? NMapType.satellite : NMapType.basic;
+    });
   }
 
   void _confirm() {
@@ -33,13 +40,23 @@ class _MapPickerPageState extends State<MapPickerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('지도에서 위치 선택')),
+      appBar: AppBar(
+        title: const Text('지도에서 위치 선택'),
+        actions: [
+          IconButton(
+            icon: Icon(_mapType == NMapType.basic ? Icons.satellite_alt_outlined : Icons.map_outlined),
+            tooltip: _mapType == NMapType.basic ? '위성 지도' : '기본 지도',
+            onPressed: _toggleMapType,
+          ),
+        ],
+      ),
       body: Stack(
         alignment: Alignment.center,
         children: [
           NaverMap(
             options: NaverMapViewOptions(
               initialCameraPosition: NCameraPosition(target: _center, zoom: 14),
+              mapType: _mapType,
             ),
             onMapReady: (controller) => _controller = controller,
             onCameraIdle: () {

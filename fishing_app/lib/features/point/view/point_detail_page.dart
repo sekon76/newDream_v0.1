@@ -1,4 +1,5 @@
 import 'package:fishing_app/core/api/api_exception.dart';
+import 'package:fishing_app/core/widgets/location_map_preview.dart';
 import 'package:fishing_app/features/point/data/point_model.dart';
 import 'package:fishing_app/features/point/provider/point_provider.dart';
 import 'package:fishing_app/features/point/view/visit_detail_page.dart';
@@ -90,6 +91,10 @@ class _PointInfoCard extends StatelessWidget {
                 const SizedBox(width: 4),
                 Expanded(child: Text(point.address!, style: const TextStyle(color: Colors.grey))),
               ]),
+            ],
+            if (point.latitude != null && point.longitude != null) ...[
+              const SizedBox(height: 12),
+              LocationMapPreview(latitude: point.latitude!, longitude: point.longitude!),
             ],
             if (point.fishType != null && point.fishType!.isNotEmpty) ...[
               const SizedBox(height: 8),
