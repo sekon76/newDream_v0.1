@@ -6,6 +6,10 @@ import 'package:fishing_app/features/profile/provider/profile_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+// 문의 접수 채널이 따로 없어서, 우선 개발자 이메일로 문의 메일을 보내는 방식으로 연결한다.
+const _adminEmail = 'ringyee@naver.com';
 
 class PredictionPage extends ConsumerStatefulWidget {
   const PredictionPage({super.key});
@@ -176,7 +180,10 @@ class _PredictionPageState extends ConsumerState<PredictionPage> {
                     ),
                     const SizedBox(height: 16),
                     if (result.hourlyWeather.isNotEmpty)
-                      _HourlyWeatherCard(items: result.hourlyWeather)
+                      _HourlyWeatherCard(
+                        items: result.hourlyWeather,
+                        hourlyWaterTemp: result.hourlyWaterTemp,
+                      )
                     else
                       const Card(
                         child: Padding(
@@ -186,7 +193,8 @@ class _PredictionPageState extends ConsumerState<PredictionPage> {
                         ),
                       ),
                     const SizedBox(height: 16),
-                    if (result.weather != null) _WeatherDetailCard(weather: result.weather!),
+                    if (result.weather != null)
+                      _WeatherDetailCard(weather: result.weather!, waterTemp: result.waterTemp),
                     const SizedBox(height: 16),
                     if (result.tide != null) _TideCard(tide: result.tide!),
                     const SizedBox(height: 16),
@@ -344,6 +352,7 @@ class _FishSearchBar extends ConsumerStatefulWidget {
 class _FishSearchBarState extends ConsumerState<_FishSearchBar> {
   final _controller = TextEditingController();
   List<FishSpecies> _results = [];
+  bool _noMatch = false;
 
   @override
   void dispose() {
@@ -353,23 +362,53 @@ class _FishSearchBarState extends ConsumerState<_FishSearchBar> {
 
   void _onChanged(String query) {
     if (query.isEmpty) {
-      setState(() => _results = []);
+      setState(() {
+        _results = [];
+        _noMatch = false;
+      });
       return;
     }
-    setState(() => _results = fishSpeciesList.where((f) => f.name.contains(query)).toList());
+    final matches = fishSpeciesList.where((f) => f.name.contains(query)).toList();
+    setState(() {
+      _results = matches;
+      _noMatch = matches.isEmpty;
+    });
   }
 
   void _select(FishSpecies fish) {
     ref.read(selectedFishProvider.notifier).select(fish);
     _controller.text = '${fish.emoji} ${fish.name}';
-    setState(() => _results = []);
+    setState(() {
+      _results = [];
+      _noMatch = false;
+    });
     FocusScope.of(context).unfocus();
   }
 
   void _clear() {
     ref.read(selectedFishProvider.notifier).clear();
     _controller.clear();
-    setState(() => _results = []);
+    setState(() {
+      _results = [];
+      _noMatch = false;
+    });
+  }
+
+  Future<void> _contactAdmin() async {
+    final query = _controller.text.trim();
+    final uri = Uri(
+      scheme: 'mailto',
+      path: _adminEmail,
+      query: {
+        'subject': '[조황일지] 어종 추가 요청',
+        'body': '"$query" 어종을 조과예측 대상 어종 목록에 추가해주세요.',
+      }.entries.map((e) => '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}').join('&'),
+    );
+    if (!await launchUrl(uri) && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('메일 앱을 열 수 없습니다.')),
+      );
+    }
   }
 
   @override
@@ -417,6 +456,39 @@ class _FishSearchBarState extends ConsumerState<_FishSearchBar> {
               )).toList(),
             ),
           ),
+        if (_noMatch)
+          Container(
+            margin: const EdgeInsets.fromLTRB(12, 0, 12, 4),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  '해당 어종에 대한 정보가 부족해서 예측이 어렵습니다.',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+                InkWell(
+                  onTap: _contactAdmin,
+                  child: const Padding(
+                    padding: EdgeInsets.only(top: 4),
+                    child: Text(
+                      '관리자에게 문의하기 →',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.blue,
+                        fontWeight: FontWeight.w500,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }
@@ -456,6 +528,58 @@ class _ScoreCard extends StatelessWidget {
     return Colors.red;
   }
 
+  // 점수 산정에 영향을 준 핵심 요인을 간단히 설명한다.
+  // 백엔드 PredictionService.calcScore / FishSpecies.adjustScore 판단 기준과 맞춰서 작성.
+  List<String> get _reasons {
+    final reasons = <String>[];
+    final w = result.weather;
+
+    if (w?.condition != null) {
+      final text = switch (w!.condition) {
+        '맑음' => '맑은 날씨',
+        '구름많음' => '구름 많음',
+        '흐림' => '흐린 날씨',
+        '소나기' => '소나기',
+        '비' || '비/눈' => '비',
+        '눈' => '눈',
+        _ => null,
+      };
+      if (text != null) reasons.add(text);
+    }
+    if (w?.temperature != null) {
+      final t = w!.temperature!;
+      if (t >= 15 && t <= 25) {
+        reasons.add('기온 ${t.toStringAsFixed(0)}°C로 적당함');
+      } else if (t < 0 || t > 30) {
+        reasons.add('기온 ${t.toStringAsFixed(0)}°C로 부적합');
+      }
+    }
+    if (w?.windSpeed != null) {
+      final ws = w!.windSpeed!;
+      if (ws < 3) {
+        reasons.add('바람 ${ws.toStringAsFixed(1)}m/s로 잔잔함');
+      } else if (ws >= 10) {
+        reasons.add('바람 ${ws.toStringAsFixed(1)}m/s로 강함');
+      }
+    }
+    if (w?.waveHeight != null && w!.waveHeight! >= 1.5) {
+      reasons.add('파고 ${w.waveHeight!.toStringAsFixed(1)}m로 높음');
+    }
+    final t = result.tide;
+    if (t?.highTideHeight1 != null && t?.lowTideHeight1 != null) {
+      final range = t!.highTideHeight1! - t.lowTideHeight1!;
+      if (range > 400) reasons.add('조석차가 커서 물때 좋음');
+    }
+    if (selectedFish != null) {
+      if (selectedFish!.isInSeason) reasons.add('${selectedFish!.name} 제철 시즌');
+      final temp = w?.temperature;
+      if (temp != null && (temp < selectedFish!.minTemp - 5 || temp > selectedFish!.maxTemp + 5)) {
+        reasons.add('${selectedFish!.name} 적정 수온 범위 벗어남');
+      }
+    }
+    return reasons;
+  }
+
   @override
   Widget build(BuildContext context) {
     final score = _score;
@@ -488,6 +612,17 @@ class _ScoreCard extends StatelessWidget {
               child: Text(_grade,
                   style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 18)),
             ),
+            if (score != null && _reasons.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Text(
+                  _reasons.take(3).join(' · '),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+              ),
+            ],
             const SizedBox(height: 8),
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               const Icon(Icons.location_on, size: 14, color: Colors.grey),
@@ -512,7 +647,8 @@ class _ScoreCard extends StatelessWidget {
 
 class _HourlyWeatherCard extends StatefulWidget {
   final List<HourlyWeatherItem> items;
-  const _HourlyWeatherCard({required this.items});
+  final List<HourlyWaterTempItem> hourlyWaterTemp;
+  const _HourlyWeatherCard({required this.items, this.hourlyWaterTemp = const []});
 
   @override
   State<_HourlyWeatherCard> createState() => _HourlyWeatherCardState();
@@ -541,10 +677,18 @@ class _HourlyWeatherCardState extends State<_HourlyWeatherCard> {
         '비' || '비/눈' => '🌧️', '눈' => '❄️', '소나기' => '🌦️', _ => '🌡️',
       };
 
+  double? _waterTempAt(String time) {
+    for (final item in widget.hourlyWaterTemp) {
+      if (item.time == time) return item.temperature;
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final selected = widget.items[_selectedIndex];
     final w = selected.weather;
+    final selectedWaterTemp = _waterTempAt(selected.time);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Card(
@@ -626,6 +770,10 @@ class _HourlyWeatherCardState extends State<_HourlyWeatherCard> {
                           '${w.windDirection != null ? ' ${w.windDirection}' : ''}'),
                 if (w.waveHeight != null)
                   _DetailChip(label: '파고', value: '${w.waveHeight!.toStringAsFixed(1)} m'),
+                _DetailChip(
+                  label: '수온',
+                  value: selectedWaterTemp != null ? '${selectedWaterTemp.toStringAsFixed(1)}°C' : '-',
+                ),
               ],
             ),
           ],
@@ -657,7 +805,8 @@ class _DetailChip extends StatelessWidget {
 
 class _WeatherDetailCard extends StatelessWidget {
   final WeatherData weather;
-  const _WeatherDetailCard({required this.weather});
+  final double? waterTemp;
+  const _WeatherDetailCard({required this.weather, this.waterTemp});
 
   String _icon(String? c) => switch (c) {
         '맑음' => '☀️', '구름많음' => '⛅', '흐림' => '☁️',
@@ -686,6 +835,7 @@ class _WeatherDetailCard extends StatelessWidget {
                       '${weather.windDirection != null ? '  ${weather.windDirection}' : ''}'),
             if (weather.waveHeight != null)
               _Row(icon: '🌊', label: '파고', value: '${weather.waveHeight!.toStringAsFixed(1)} m'),
+            _Row(icon: '🌡️', label: '수온', value: waterTemp != null ? '${waterTemp!.toStringAsFixed(1)}°C' : '-'),
           ],
         ),
       ),

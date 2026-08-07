@@ -36,4 +36,11 @@ class AuthNotifier extends _$AuthNotifier {
       () => ref.read(authRepositoryProvider).logout(),
     );
   }
+
+  Future<void> resetPassword(String email, String newPassword) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(
+      () => ref.read(authRepositoryProvider).resetPassword(email, newPassword),
+    );
+  }
 }

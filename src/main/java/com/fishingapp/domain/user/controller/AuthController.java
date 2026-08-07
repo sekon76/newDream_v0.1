@@ -2,6 +2,7 @@ package com.fishingapp.domain.user.controller;
 
 import com.fishingapp.domain.user.dto.AuthResponse;
 import com.fishingapp.domain.user.dto.LoginRequest;
+import com.fishingapp.domain.user.dto.PasswordResetRequest;
 import com.fishingapp.domain.user.dto.SignUpRequest;
 import com.fishingapp.domain.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,6 +27,12 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(userService.login(request));
+    }
+
+    @PutMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@Valid @RequestBody PasswordResetRequest request) {
+        userService.resetPassword(request);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/logout")

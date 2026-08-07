@@ -58,6 +58,18 @@ class TideData {
       );
 }
 
+class HourlyWaterTempItem {
+  final String time; // "0600", "0900", "1200" ... (HourlyWeatherItem과 동일 포맷)
+  final double? temperature;
+
+  HourlyWaterTempItem({required this.time, this.temperature});
+
+  factory HourlyWaterTempItem.fromJson(Map<String, dynamic> json) => HourlyWaterTempItem(
+        time: json['time'] as String,
+        temperature: (json['temperature'] as num?)?.toDouble(),
+      );
+}
+
 class HourlyWeatherItem {
   final String time; // "0600", "0900", "1200" ...
   final WeatherData weather;
@@ -111,9 +123,11 @@ class PredictionResult {
   final double longitude;
   final WeatherData? weather;
   final TideData? tide;
+  final double? waterTemp;
   final int? fishingScore;
   final String? fishingGrade;
   final List<HourlyWeatherItem> hourlyWeather;
+  final List<HourlyWaterTempItem> hourlyWaterTemp;
 
   PredictionResult({
     required this.date,
@@ -121,9 +135,11 @@ class PredictionResult {
     required this.longitude,
     this.weather,
     this.tide,
+    this.waterTemp,
     this.fishingScore,
     this.fishingGrade,
     this.hourlyWeather = const [],
+    this.hourlyWaterTemp = const [],
   });
 
   factory PredictionResult.fromJson(Map<String, dynamic> json) => PredictionResult(
@@ -136,10 +152,14 @@ class PredictionResult {
         tide: json['tide'] != null
             ? TideData.fromJson(json['tide'] as Map<String, dynamic>)
             : null,
+        waterTemp: (json['waterTemp'] as num?)?.toDouble(),
         fishingScore: json['fishingScore'] as int?,
         fishingGrade: json['fishingGrade'] as String?,
         hourlyWeather: (json['hourlyWeather'] as List<dynamic>? ?? [])
             .map((e) => HourlyWeatherItem.fromJson(e as Map<String, dynamic>))
+            .toList(),
+        hourlyWaterTemp: (json['hourlyWaterTemp'] as List<dynamic>? ?? [])
+            .map((e) => HourlyWaterTempItem.fromJson(e as Map<String, dynamic>))
             .toList(),
       );
 }

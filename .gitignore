@@ -21,3 +21,6 @@ dump.rdb
 # Env files
 .env
 *.env.local
+
+# 테스트용 빌드 산출물 (로컬 배포용, 저장소에는 안 올림)
+apk_builds/

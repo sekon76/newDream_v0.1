@@ -3,6 +3,7 @@ package com.fishingapp.domain.user.service;
 import com.fishingapp.domain.user.dto.AuthResponse;
 import com.fishingapp.domain.user.dto.LoginRequest;
 import com.fishingapp.domain.user.dto.PasswordChangeRequest;
+import com.fishingapp.domain.user.dto.PasswordResetRequest;
 import com.fishingapp.domain.user.dto.SignUpRequest;
 import com.fishingapp.domain.user.entity.User;
 import com.fishingapp.domain.user.entity.UserRole;
@@ -75,6 +76,14 @@ public class UserService implements UserDetailsService {
         }
         // @AuthenticationPrincipal로 들어온 User는 필터 단계에서 로딩된 detached 상태라
         // 이 트랜잭션의 영속성 컨텍스트 dirty checking 대상이 아니므로 명시적으로 저장한다.
+        user.changePassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void resetPassword(PasswordResetRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("해당 이메일로 등록된 사용자가 없습니다."));
         user.changePassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
     }

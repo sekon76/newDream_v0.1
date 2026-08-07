@@ -1,4 +1,5 @@
 import 'package:fishing_app/features/auth/provider/auth_provider.dart';
+import 'package:fishing_app/features/auth/view/find_password_page.dart';
 import 'package:fishing_app/features/auth/view/login_page.dart';
 import 'package:fishing_app/features/auth/view/signup_page.dart';
 import 'package:fishing_app/features/community/view/community_page.dart';
@@ -25,7 +26,8 @@ GoRouter appRouter(Ref ref) {
     redirect: (context, state) {
       final isLoggedIn = authAsync.valueOrNull ?? false;
       final isAuthRoute = state.matchedLocation == '/login' ||
-          state.matchedLocation == '/signup';
+          state.matchedLocation == '/signup' ||
+          state.matchedLocation == '/find-password';
 
       if (!isLoggedIn && !isAuthRoute) return '/login';
       if (isLoggedIn && isAuthRoute) return '/prediction';
@@ -34,6 +36,7 @@ GoRouter appRouter(Ref ref) {
     routes: [
       GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
       GoRoute(path: '/signup', builder: (context, state) => const SignupPage()),
+      GoRoute(path: '/find-password', builder: (context, state) => const FindPasswordPage()),
       GoRoute(path: '/points/create', builder: (context, state) => const PointCreatePage()),
       GoRoute(path: '/profile', builder: (context, state) => const ProfilePage()),
       GoRoute(

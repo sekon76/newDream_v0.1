@@ -35,6 +35,13 @@ class AuthRepository {
     });
   }
 
+  Future<void> resetPassword(String email, String newPassword) async {
+    await _dio.put('/auth/reset-password', data: {
+      'email': email,
+      'newPassword': newPassword,
+    });
+  }
+
   Future<void> logout() async {
     try {
       await _dio.post('/auth/logout');

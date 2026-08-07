@@ -14,21 +14,26 @@ public class PredictionResponse {
     private final double longitude;
     private final WeatherInfo weather;
     private final TideInfo tide;
+    private final Double waterTemp;
     private final Integer fishingScore;
     private final String fishingGrade;
     private final List<HourlyWeatherItem> hourlyWeather;
+    private final List<HourlyWaterTempItem> hourlyWaterTemp;
 
     public PredictionResponse(LocalDate date, double latitude, double longitude,
-                              WeatherInfo weather, TideInfo tide,
+                              WeatherInfo weather, TideInfo tide, Double waterTemp,
                               Integer fishingScore, String fishingGrade,
-                              List<HourlyWeatherItem> hourlyWeather) {
+                              List<HourlyWeatherItem> hourlyWeather,
+                              List<HourlyWaterTempItem> hourlyWaterTemp) {
         this.date = date;
         this.latitude = latitude;
         this.longitude = longitude;
         this.weather = weather;
         this.tide = tide;
+        this.waterTemp = waterTemp;
         this.fishingScore = fishingScore;
         this.fishingGrade = fishingGrade;
         this.hourlyWeather = hourlyWeather;
+        this.hourlyWaterTemp = hourlyWaterTemp;
     }
 }

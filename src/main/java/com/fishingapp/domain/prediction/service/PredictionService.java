@@ -2,13 +2,16 @@ package com.fishingapp.domain.prediction.service;
 
 import com.fishingapp.domain.point.entity.TideInfo;
 import com.fishingapp.domain.point.entity.WeatherInfo;
+import com.fishingapp.domain.prediction.dto.HourlyWaterTempItem;
 import com.fishingapp.domain.prediction.dto.PredictionResponse;
 import com.fishingapp.global.external.TideClient;
+import com.fishingapp.global.external.WaterTempClient;
 import com.fishingapp.global.external.WeatherClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -16,17 +19,20 @@ public class PredictionService {
 
     private final WeatherClient weatherClient;
     private final TideClient tideClient;
+    private final WaterTempClient waterTempClient;
 
     public PredictionResponse predict(double latitude, double longitude, LocalDate date) {
         WeatherInfo weather = weatherClient.fetch(latitude, longitude, date);
         TideInfo tide = tideClient.fetch(latitude, longitude, date);
         var hourlyWeather = weatherClient.fetchHourly(latitude, longitude, date);
+        List<HourlyWaterTempItem> hourlyWaterTemp = waterTempClient.fetchHourly(latitude, longitude, date);
+        Double waterTemp = hourlyWaterTemp.isEmpty() ? null : hourlyWaterTemp.get(0).temperature();
 
         boolean nearCoast = tideClient.isNearCoast(latitude, longitude);
         Integer score = (!nearCoast || (weather == null && tide == null)) ? null : calcScore(weather, tide);
         String grade = nearCoast ? toGrade(score) : "예측 불가 (바다와 너무 멉니다)";
 
-        return new PredictionResponse(date, latitude, longitude, weather, tide, score, grade, hourlyWeather);
+        return new PredictionResponse(date, latitude, longitude, weather, tide, waterTemp, score, grade, hourlyWeather, hourlyWaterTemp);
     }
 
     private int calcScore(WeatherInfo weather, TideInfo tide) {

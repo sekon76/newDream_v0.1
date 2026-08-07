@@ -15,6 +15,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _emailCtrl = TextEditingController();
   final _pwCtrl = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  int _failedAttempts = 0;
+
+  static const _failuresBeforeFindPassword = 5;
 
   @override
   void dispose() {
@@ -32,6 +35,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     if (!mounted) return;
     final state = ref.read(authNotifierProvider);
     if (state is AsyncError) {
+      setState(() => _failedAttempts++);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('로그인 실패: ${apiErrorMessage(state.error)}')),
       );
@@ -85,6 +89,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   validator: (v) =>
                       (v == null || v.length < 6) ? '6자 이상 입력하세요.' : null,
                 ),
+                if (_failedAttempts >= _failuresBeforeFindPassword) ...[
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () => context.push('/find-password'),
+                      child: const Text('비밀번호를 잊으셨나요? 비밀번호 찾기'),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 24),
                 FilledButton(
                   onPressed: isLoading ? null : _submit,
