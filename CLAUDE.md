@@ -62,7 +62,7 @@ expiration: 86400000  # 24시간(ms)
 
 ---
 
-## 현재 프로젝트 상태 (2026-07-22 기준)
+## 현재 프로젝트 상태 (2026-08-07 기준)
 
 - [x] 프로젝트 구조 생성 (Gradle, Spring Boot)
 - [x] PostgreSQL 설치 및 DB/유저 생성
@@ -83,6 +83,15 @@ expiration: 86400000  # 24시간(ms)
 - [x] **FishingPoint.communityOnly 플래그** — 커뮤니티 글쓰기가 내부적으로 만드는 포인트(글을 담는 용도)는 "내 포인트" 목록과 일지의 포인트 선택 목록에서 제외. `/api/points` GET은 `communityOnly=false`인 것만 반환
 - [x] **조과예측 화면 개선** — 지역 검색 후 좌표를 바로 확정하지 않고 지도를 열어 정확한 위치를 다시 고를 수 있음. 주소 조합 순서 수정(시/도→시/군/구→동/읍/면→도로명→건물번호)으로 상세도 향상. 예측 불가 상태에서 어종 시즌 메시지 숨김. 에러 화면은 raw 예외 대신 "예측하지 못했습니다."로 단순화
 - [x] **배포 완료 (테스트용)** — Render(백엔드, Docker) + Neon(PostgreSQL) + Upstash(Redis) 조합으로 무료 배포. 서비스 URL: `https://playfishing-v01.onrender.com`. Flutter `api_client.dart`의 `_baseUrl`이 이 주소를 가리키도록 변경됨(에뮬레이터 테스트 시 `http://10.0.2.2:8080/api`로 되돌려야 함)
+- [x] **domain/preference — 선호 지역/어종** — 여러 개의 선호 지역과 지역별 선호 어종을 등록. 지역 중 기본 1개, 그 지역의 어종 중 기본 1개를 라디오로 지정하면 조과예측 화면 첫 진입 시 자동 적용됨
+- [x] **내 정보 화면** — 프로필(이메일/닉네임), 비밀번호 변경, 선호 지역/어종 관리. 하단 탭이 아니라 각 화면 우측 상단 프로필 아이콘으로 진입
+- [x] **비밀번호 찾기** — 로그인 5회 연속 실패 시 링크 노출. `PUT /api/auth/reset-password`로 이메일 확인 즉시 재설정(⚠️ 이메일 소유 확인 절차 없음 — 테스트 단계라 의도적으로 생략, 실사용자 오픈 전 보완 필요)
+- [x] **로그인 세션을 메모리에만 유지** — JWT를 디스크에 저장하지 않음(`SecureStorageService`가 in-memory Provider로 동작). 앱을 완전히 종료했다 다시 켜면(프로세스 재시작) 토큰 유효기간과 무관하게 항상 재로그인 필요. 만료된 토큰으로 401을 받으면 Dio 인터셉터가 자동으로 로그인 화면으로 리다이렉트(`api_client.dart`)
+- [x] **실시간 수온 정보** — 해양수산부 국립해양조사원 실시간 해양관측정보(KHOA `twRecent`) 연동. 관측소 반경 25km 이내 + **오늘 날짜에만** 제공(예보가 아니라 실측 자료라 미래 시간대는 "-"로 표시). 조과예측의 날씨 상세/시간대별 카드에 통합 표시. 관측소 코드/좌표는 `WaterTempStations`에 하드코딩(HB/KG/TW 그룹, 총 37곳)
+- [x] **조과예측 대상 어종 30종으로 확대** — 어류 위주 10종에서 두족류·갑각류 포함 30종으로 확대(문어/오징어/쭈꾸미/한치/갑오징어/꽃게/대하 등). 목록에 없는 어종 검색 시 안내 문구 + 관리자 이메일로 문의하기 링크(mailto) 제공
+- [x] **조과예측 점수 산정 사유 표시** — 점수/등급 옆에 판단 근거(날씨상태/기온/풍속/파고/조석차/제철여부 등)를 최대 3개까지 요약 표시
+- [x] **위치 UX 개선 일괄** — ①지도 미리보기(`LocationMapPreview`) 전반에 확대/축소/드래그 제스처 허용(이전엔 전부 조작 불가였음) ②포인트 방문기록(`PointVisit`)에 자체 위치(latitude/longitude) 추가 — 같은 포인트라도 방문마다 실제 낚시 지점이 다를 수 있어 개별 등록/수정 가능, 없으면 포인트 대표 위치를 사용 ③일지 수정 화면에서도 위치 등록/수정 가능하도록 백엔드 지원 추가(기존엔 등록시에만 가능) ④조과예측 위치검색에 최근 선택 5곳을 빠른 선택 칩으로 노출 ⑤지도에서 위치 선택 화면에 기본/위성 지도 토글 버튼 추가
+- [x] **앱 런처 아이콘 변경** — 기본 Flutter 아이콘 → 낚싯바늘 모양 아이콘(adaptive icon 포함, `flutter_launcher_icons`)
 - [ ] 수익 모델 — AdMob 광고, 프리미엄 구독 (미착수)
 
 ---
@@ -138,14 +147,19 @@ com.fishingapp
 │   │   ├── controller    # CommunityController (/api/community)
 │   │   ├── entity        # PostLike, Comment
 │   │   └── service       # CommunityService, LikeService, CommentService
-│   └── diary             # 낚시 일지 ✅ (포인트 없이도 작성 가능, 포인트 선택적 연결)
-│       ├── controller    # DiaryController (/api/diaries)
-│       ├── entity        # Diary, DiaryTackleEntry, DiaryCatchRecord
-│       └── service       # DiaryService (KMA/KHOA 연동)
+│   ├── diary              # 낚시 일지 ✅ (포인트 없이도 작성 가능, 포인트 선택적 연결, 수정 시 위치 변경 가능)
+│   │   ├── controller    # DiaryController (/api/diaries)
+│   │   ├── entity        # Diary, DiaryTackleEntry, DiaryCatchRecord
+│   │   └── service       # DiaryService (KMA/KHOA 연동)
+│   └── preference         # 선호 지역/어종 ✅
+│       ├── controller    # PreferredRegionController (/api/preferred-regions)
+│       ├── entity        # PreferredRegion(isDefault), PreferredFishSpecies(isDefault)
+│       └── service       # PreferredRegionService
 ├── global
 │   ├── config            # SecurityConfig, JwtAuthenticationFilter, RedisConfig, JwtProperties ✅
 │   ├── exception         # GlobalExceptionHandler, ErrorResponse ✅
-│   ├── external          # WeatherClient(KMA)/TideClient(KHOA) 실 연동 구현 ✅
+│   ├── external           # WeatherClient(KMA)/TideClient(KHOA)/WaterTempClient(KHOA) 실 연동 구현 ✅
+│   │   └── khoa           # KhoaTideClient, KhoaWaterTempClient, TideStations, WaterTempStations
 │   └── util              # JwtTokenProvider ✅
 ```
 
@@ -155,7 +169,12 @@ com.fishingapp
 |--------|-----|------|------|
 | POST | /api/auth/signup | 불필요 | 회원가입 (mapProvider 선택: NAVER/KAKAO) |
 | POST | /api/auth/login | 불필요 | 로그인 |
+| PUT | /api/auth/reset-password | 불필요 | 비밀번호 찾기(이메일 확인 없이 즉시 재설정) |
 | POST | /api/auth/logout | Bearer 토큰 | 로그아웃 (Redis 블랙리스트) |
+| GET | /api/users/me | Bearer 토큰 | 내 프로필 조회 |
+| PUT | /api/users/me/password | Bearer 토큰 | 비밀번호 변경(현재 비밀번호 확인) |
+| POST/GET | /api/preferred-regions | Bearer 토큰 | 선호 지역 등록/목록 (지역별 선호 어종 포함) |
+| PUT/DELETE | /api/preferred-regions/{id} | Bearer 토큰 | 선호 지역 수정/삭제 |
 | POST | /api/points | Bearer 토큰 | 낚시 포인트 등록 |
 | GET | /api/points | Bearer 토큰 | 내 포인트 목록 |
 | GET | /api/points/{id} | Bearer 토큰 | 포인트 상세 |

@@ -58,6 +58,8 @@ class PointRepository {
   Future<PointVisit> createVisit(
     int pointId, {
     required DateTime visitDate,
+    double? latitude,
+    double? longitude,
     String? title,
     String? content,
     String? memo,
@@ -69,6 +71,8 @@ class PointRepository {
       '/points/$pointId/visits',
       data: _visitPayload(
         visitDate: visitDate,
+        latitude: latitude,
+        longitude: longitude,
         title: title,
         content: content,
         memo: memo,
@@ -84,6 +88,8 @@ class PointRepository {
     int pointId,
     int visitId, {
     required DateTime visitDate,
+    double? latitude,
+    double? longitude,
     String? title,
     String? content,
     String? memo,
@@ -95,6 +101,8 @@ class PointRepository {
       '/points/$pointId/visits/$visitId',
       data: _visitPayload(
         visitDate: visitDate,
+        latitude: latitude,
+        longitude: longitude,
         title: title,
         content: content,
         memo: memo,
@@ -108,6 +116,8 @@ class PointRepository {
 
   Map<String, dynamic> _visitPayload({
     required DateTime visitDate,
+    double? latitude,
+    double? longitude,
     String? title,
     String? content,
     String? memo,
@@ -118,6 +128,8 @@ class PointRepository {
     return {
       'visitDate':
           '${visitDate.year.toString().padLeft(4, '0')}-${visitDate.month.toString().padLeft(2, '0')}-${visitDate.day.toString().padLeft(2, '0')}',
+      'latitude': latitude,
+      'longitude': longitude,
       'title': title,
       'content': content,
       'memo': memo,

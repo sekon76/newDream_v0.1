@@ -31,17 +31,22 @@ public class PointVisitService {
     @Transactional
     public PointVisitResponse create(User user, Long pointId, PointVisitCreateRequest request) {
         FishingPoint point = getOwnedPoint(user, pointId);
-        boolean hasLocation = point.getLatitude() != null && point.getLongitude() != null;
+        // 방문기록에 위치가 따로 지정되지 않았으면 포인트의 대표 위치를 날씨/조석 조회에 사용한다.
+        Double lat = request.getLatitude() != null ? request.getLatitude() : point.getLatitude();
+        Double lon = request.getLongitude() != null ? request.getLongitude() : point.getLongitude();
+        boolean hasLocation = lat != null && lon != null;
         WeatherInfo weather = hasLocation
-                ? weatherClient.fetch(point.getLatitude(), point.getLongitude(), request.getVisitDate())
+                ? weatherClient.fetch(lat, lon, request.getVisitDate())
                 : null;
         TideInfo tide = hasLocation
-                ? tideClient.fetch(point.getLatitude(), point.getLongitude(), request.getVisitDate())
+                ? tideClient.fetch(lat, lon, request.getVisitDate())
                 : null;
 
         PointVisit visit = PointVisit.builder()
                 .fishingPoint(point)
                 .visitDate(request.getVisitDate())
+                .latitude(request.getLatitude())
+                .longitude(request.getLongitude())
                 .memo(request.getMemo())
                 .title(request.getTitle())
                 .content(request.getContent())
@@ -83,8 +88,8 @@ public class PointVisitService {
         FishingPoint point = getOwnedPoint(user, pointId);
         PointVisit visit = getOwnedVisit(point, visitId);
 
-        visit.update(request.getVisitDate(), request.getMemo(),
-                request.getTitle(), request.getContent(), request.isPublic());
+        visit.update(request.getVisitDate(), request.getLatitude(), request.getLongitude(),
+                request.getMemo(), request.getTitle(), request.getContent(), request.isPublic());
 
         if (request.getTackles() != null) {
             List<TackleEntry> newTackles = request.getTackles().stream()

@@ -25,11 +25,11 @@ class LocationMapPreview extends StatelessWidget {
         child: NaverMap(
           options: NaverMapViewOptions(
             initialCameraPosition: NCameraPosition(target: position, zoom: 14),
-            scrollGesturesEnable: false,
-            zoomGesturesEnable: false,
+            scrollGesturesEnable: true,
+            zoomGesturesEnable: true,
             tiltGesturesEnable: false,
             rotationGesturesEnable: false,
-            stopGesturesEnable: false,
+            stopGesturesEnable: true,
             logoClickEnable: false,
           ),
           onMapReady: (controller) {

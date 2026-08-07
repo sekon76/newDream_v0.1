@@ -32,6 +32,11 @@ public class PointVisit {
     @Column(nullable = false)
     private LocalDate visitDate;
 
+    // 같은 포인트라도 방문할 때마다 실제로 낚시한 지점이 조금씩 다를 수 있어 방문기록마다 별도로 저장한다.
+    // null이면 포인트의 대표 위치를 그대로 사용한다는 뜻.
+    private Double latitude;
+    private Double longitude;
+
     @Column(length = 500)
     private String memo;
 
@@ -64,11 +69,13 @@ public class PointVisit {
     private LocalDateTime updatedAt;
 
     @Builder
-    public PointVisit(FishingPoint fishingPoint, LocalDate visitDate, String memo,
-                      String title, String content, boolean isPublic,
+    public PointVisit(FishingPoint fishingPoint, LocalDate visitDate, Double latitude, Double longitude,
+                      String memo, String title, String content, boolean isPublic,
                       WeatherInfo weather, TideInfo tide) {
         this.fishingPoint = fishingPoint;
         this.visitDate = visitDate;
+        this.latitude = latitude;
+        this.longitude = longitude;
         this.memo = memo;
         this.title = title;
         this.content = content;
@@ -97,8 +104,11 @@ public class PointVisit {
         newCatches.forEach(this::addCatch);
     }
 
-    public void update(LocalDate visitDate, String memo, String title, String content, boolean isPublic) {
+    public void update(LocalDate visitDate, Double latitude, Double longitude,
+                       String memo, String title, String content, boolean isPublic) {
         this.visitDate = visitDate;
+        this.latitude = latitude;
+        this.longitude = longitude;
         this.memo = memo;
         this.title = title;
         this.content = content;

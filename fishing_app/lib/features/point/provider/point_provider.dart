@@ -56,6 +56,8 @@ class PointActions extends _$PointActions {
   Future<bool> createVisit(
     int pointId, {
     required DateTime visitDate,
+    double? latitude,
+    double? longitude,
     String? title,
     String? content,
     String? memo,
@@ -67,6 +69,8 @@ class PointActions extends _$PointActions {
     state = await AsyncValue.guard(() => ref.read(pointRepositoryProvider).createVisit(
           pointId,
           visitDate: visitDate,
+          latitude: latitude,
+          longitude: longitude,
           title: title,
           content: content,
           memo: memo,
@@ -119,6 +123,8 @@ class PointActions extends _$PointActions {
     int pointId,
     int visitId, {
     required DateTime visitDate,
+    double? latitude,
+    double? longitude,
     String? title,
     String? content,
     String? memo,
@@ -131,6 +137,8 @@ class PointActions extends _$PointActions {
           pointId,
           visitId,
           visitDate: visitDate,
+          latitude: latitude,
+          longitude: longitude,
           title: title,
           content: content,
           memo: memo,

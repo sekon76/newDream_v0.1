@@ -93,11 +93,16 @@ public class Diary {
         this.tide = tide;
     }
 
-    public void update(LocalDate visitDate, String title, String content, String memo) {
+    public void update(LocalDate visitDate, String title, String content, String memo,
+                       FishingPoint fishingPoint, Double latitude, Double longitude, String address) {
         this.visitDate = visitDate;
         this.title = title;
         this.content = content;
         this.memo = memo;
+        this.fishingPoint = fishingPoint;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.address = address;
     }
 
     public void addTackle(DiaryTackleEntry tackle) {

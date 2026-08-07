@@ -13,6 +13,8 @@ import java.util.List;
 public class PointVisitResponse {
     private final Long id;
     private final LocalDate visitDate;
+    private final Double latitude;
+    private final Double longitude;
     private final String memo;
     private final String title;
     private final String content;
@@ -27,6 +29,8 @@ public class PointVisitResponse {
     public PointVisitResponse(PointVisit visit) {
         this.id = visit.getId();
         this.visitDate = visit.getVisitDate();
+        this.latitude = visit.getLatitude();
+        this.longitude = visit.getLongitude();
         this.memo = visit.getMemo();
         this.title = visit.getTitle();
         this.content = visit.getContent();

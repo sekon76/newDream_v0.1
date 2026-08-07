@@ -53,6 +53,10 @@ class DiaryActions extends _$DiaryActions {
     String? title,
     String? content,
     String? memo,
+    int? pointId,
+    double? latitude,
+    double? longitude,
+    String? address,
     List<TackleEntryData> tackles = const [],
     List<CatchRecordData> catches = const [],
   }) async {
@@ -63,6 +67,10 @@ class DiaryActions extends _$DiaryActions {
           title: title,
           content: content,
           memo: memo,
+          pointId: pointId,
+          latitude: latitude,
+          longitude: longitude,
+          address: address,
           tackles: tackles,
           catches: catches,
         ));

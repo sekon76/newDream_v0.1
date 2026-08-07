@@ -37,8 +37,9 @@ public class CommunityPostDetail {
         this.authorNickname = visit.getFishingPoint().getUser().getNickname();
         this.pointName = visit.getFishingPoint().getName();
         this.pointAddress = visit.getFishingPoint().getAddress();
-        this.pointLatitude = visit.getFishingPoint().getLatitude();
-        this.pointLongitude = visit.getFishingPoint().getLongitude();
+        // 방문기록에 별도 위치가 지정돼 있으면 그걸 우선 사용(같은 포인트라도 방문마다 실제 지점이 다를 수 있음).
+        this.pointLatitude = visit.getLatitude() != null ? visit.getLatitude() : visit.getFishingPoint().getLatitude();
+        this.pointLongitude = visit.getLongitude() != null ? visit.getLongitude() : visit.getFishingPoint().getLongitude();
         this.visitDate = visit.getVisitDate();
         this.title = visit.getTitle();
         this.content = visit.getContent();

@@ -54,6 +54,10 @@ class DiaryRepository {
     String? title,
     String? content,
     String? memo,
+    int? pointId,
+    double? latitude,
+    double? longitude,
+    String? address,
     List<TackleEntryData> tackles = const [],
     List<CatchRecordData> catches = const [],
   }) async {
@@ -62,6 +66,10 @@ class DiaryRepository {
       'title': title,
       'content': content,
       'memo': memo,
+      'pointId': pointId,
+      'latitude': latitude,
+      'longitude': longitude,
+      'address': address,
       'tackles': tackles.map((e) => e.toJson()).toList(),
       'catches': catches.map((e) => e.toJson()).toList(),
     });

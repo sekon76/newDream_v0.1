@@ -97,6 +97,8 @@ class CatchRecordData {
 class PointVisit {
   final int id;
   final DateTime visitDate;
+  final double? latitude;
+  final double? longitude;
   final String? memo;
   final String? title;
   final String? content;
@@ -110,6 +112,8 @@ class PointVisit {
   PointVisit({
     required this.id,
     required this.visitDate,
+    this.latitude,
+    this.longitude,
     this.memo,
     this.title,
     this.content,
@@ -124,6 +128,8 @@ class PointVisit {
   factory PointVisit.fromJson(Map<String, dynamic> json) => PointVisit(
         id: json['id'] as int,
         visitDate: DateTime.parse(json['visitDate'] as String),
+        latitude: (json['latitude'] as num?)?.toDouble(),
+        longitude: (json['longitude'] as num?)?.toDouble(),
         memo: json['memo'] as String?,
         title: json['title'] as String?,
         content: json['content'] as String?,

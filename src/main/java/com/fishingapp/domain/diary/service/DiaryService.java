@@ -75,7 +75,11 @@ public class DiaryService {
     @Transactional
     public DiaryResponse update(User user, Long diaryId, DiaryUpdateRequest request) {
         Diary diary = getOwnedDiary(user, diaryId);
-        diary.update(request.getVisitDate(), request.getTitle(), request.getContent(), request.getMemo());
+        FishingPoint point = request.getPointId() != null
+                ? getOwnedPoint(user, request.getPointId())
+                : null;
+        diary.update(request.getVisitDate(), request.getTitle(), request.getContent(), request.getMemo(),
+                point, request.getLatitude(), request.getLongitude(), request.getAddress());
 
         if (request.getTackles() != null) {
             List<DiaryTackleEntry> newTackles = request.getTackles().stream()

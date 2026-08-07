@@ -1,4 +1,5 @@
 import 'package:fishing_app/core/api/api_exception.dart';
+import 'package:fishing_app/core/widgets/location_map_preview.dart';
 import 'package:fishing_app/features/diary/data/diary_model.dart';
 import 'package:fishing_app/features/diary/provider/diary_provider.dart';
 import 'package:fishing_app/features/point/data/point_model.dart';
@@ -292,6 +293,10 @@ class _DiaryCreatePageState extends ConsumerState<DiaryCreatePage> {
             title: _titleCtrl.text.trim().isEmpty ? null : _titleCtrl.text.trim(),
             content: _contentCtrl.text.trim().isEmpty ? null : _contentCtrl.text.trim(),
             memo: _memoCtrl.text.trim().isEmpty ? null : _memoCtrl.text.trim(),
+            pointId: _pointId,
+            latitude: _lat,
+            longitude: _lon,
+            address: _addressCtrl.text.trim().isEmpty ? null : _addressCtrl.text.trim(),
             tackles: tackles,
             catches: catches,
           )
@@ -361,60 +366,61 @@ class _DiaryCreatePageState extends ConsumerState<DiaryCreatePage> {
                   controller: _memoCtrl,
                   decoration: const InputDecoration(labelText: '메모', border: OutlineInputBorder()),
                 ),
-                if (!_isEditing) ...[
-                  const SizedBox(height: 24),
-                  Text('위치 (선택)', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  if (_pointId != null)
-                    Chip(
-                      avatar: const Icon(Icons.location_on, size: 16),
-                      label: Text('연결된 포인트: $_pointName'),
-                      onDeleted: _clearPointLink,
-                    )
-                  else
-                    TextButton.icon(
-                      onPressed: _pickFromMyPoints,
-                      icon: const Icon(Icons.location_on_outlined, size: 18),
-                      label: const Text('내 포인트에서 불러오기'),
-                    ),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    controller: _addressCtrl,
-                    enabled: _pointId == null,
-                    decoration: InputDecoration(
-                      labelText: '위치 검색',
-                      border: const OutlineInputBorder(),
-                      suffixIcon: _isLocating
-                          ? const Padding(
-                              padding: EdgeInsets.all(12),
-                              child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
-                            )
-                          : IconButton(icon: const Icon(Icons.search), onPressed: _searchAddress),
-                    ),
-                    onFieldSubmitted: (_) => _searchAddress(),
+                const SizedBox(height: 24),
+                Text('위치 (선택)', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                if (_pointId != null)
+                  Chip(
+                    avatar: const Icon(Icons.location_on, size: 16),
+                    label: Text('연결된 포인트: $_pointName'),
+                    onDeleted: _clearPointLink,
+                  )
+                else
+                  TextButton.icon(
+                    onPressed: _pickFromMyPoints,
+                    icon: const Icon(Icons.location_on_outlined, size: 18),
+                    label: const Text('내 포인트에서 불러오기'),
                   ),
-                  if (_pointId == null) ...[
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        TextButton.icon(
-                          onPressed: _isLocating ? null : _useCurrentLocation,
-                          icon: const Icon(Icons.my_location, size: 18),
-                          label: const Text('현재 위치 사용'),
-                        ),
-                        TextButton.icon(
-                          onPressed: _openMapPicker,
-                          icon: const Icon(Icons.map_outlined, size: 18),
-                          label: const Text('지도에서 선택'),
-                        ),
-                      ],
-                    ),
-                  ],
-                  if (_lat != null && _lon != null)
-                    Text(
-                      '선택된 좌표: ${_lat!.toStringAsFixed(5)}, ${_lon!.toStringAsFixed(5)}',
-                      style: const TextStyle(color: Colors.grey, fontSize: 12),
-                    ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _addressCtrl,
+                  enabled: _pointId == null,
+                  decoration: InputDecoration(
+                    labelText: '위치 검색',
+                    border: const OutlineInputBorder(),
+                    suffixIcon: _isLocating
+                        ? const Padding(
+                            padding: EdgeInsets.all(12),
+                            child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                          )
+                        : IconButton(icon: const Icon(Icons.search), onPressed: _searchAddress),
+                  ),
+                  onFieldSubmitted: (_) => _searchAddress(),
+                ),
+                if (_pointId == null) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      TextButton.icon(
+                        onPressed: _isLocating ? null : _useCurrentLocation,
+                        icon: const Icon(Icons.my_location, size: 18),
+                        label: const Text('현재 위치 사용'),
+                      ),
+                      TextButton.icon(
+                        onPressed: _openMapPicker,
+                        icon: const Icon(Icons.map_outlined, size: 18),
+                        label: const Text('지도에서 선택'),
+                      ),
+                    ],
+                  ),
+                ],
+                if (_lat != null && _lon != null) ...[
+                  Text(
+                    '선택된 좌표: ${_lat!.toStringAsFixed(5)}, ${_lon!.toStringAsFixed(5)}',
+                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
+                  const SizedBox(height: 8),
+                  LocationMapPreview(latitude: _lat!, longitude: _lon!),
                 ],
                 const SizedBox(height: 24),
                 _SectionHeader(

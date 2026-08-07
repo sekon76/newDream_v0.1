@@ -1,8 +1,11 @@
+import 'package:fishing_app/core/widgets/location_map_preview.dart';
 import 'package:fishing_app/features/point/data/point_model.dart';
+import 'package:fishing_app/features/point/provider/point_provider.dart';
 import 'package:fishing_app/features/point/view/visit_create_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class VisitDetailPage extends StatelessWidget {
+class VisitDetailPage extends ConsumerWidget {
   final int pointId;
   final PointVisit visit;
   const VisitDetailPage({super.key, required this.pointId, required this.visit});
@@ -17,9 +20,12 @@ class VisitDetailPage extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final dateStr =
         '${visit.visitDate.year}-${visit.visitDate.month.toString().padLeft(2, '0')}-${visit.visitDate.day.toString().padLeft(2, '0')}';
+    final asyncPoint = ref.watch(pointDetailProvider(pointId));
+    final lat = visit.latitude ?? asyncPoint.valueOrNull?.latitude;
+    final lon = visit.longitude ?? asyncPoint.valueOrNull?.longitude;
 
     return Scaffold(
       appBar: AppBar(
@@ -43,6 +49,10 @@ class VisitDetailPage extends StatelessWidget {
                 ),
             ],
           ),
+          if (lat != null && lon != null) ...[
+            const SizedBox(height: 12),
+            LocationMapPreview(latitude: lat, longitude: lon),
+          ],
           if (visit.content != null && visit.content!.isNotEmpty) ...[
             const SizedBox(height: 16),
             _SectionCard(title: '내용', child: Text(visit.content!)),
